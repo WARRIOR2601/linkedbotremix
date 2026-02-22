@@ -9,8 +9,8 @@ import { Loader2 } from "lucide-react";
 
 // Eagerly load critical pages
 import Landing from "./pages/Landing";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
 
 // Lazy load all other pages
 const Onboarding = lazy(() => import("./pages/Onboarding"));
