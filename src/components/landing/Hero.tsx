@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Bot, Sparkles, Calendar, BarChart3, Chrome } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import dashboardPreview from "@/assets/dashboard-preview.png";
+const dashboardPreview = "/images/dashboard-preview.webp";
 
 const Hero = () => {
   const navigate = useNavigate();
@@ -111,7 +111,10 @@ const Hero = () => {
                 src={dashboardPreview} 
                 alt="LinkedBot Dashboard Preview showing analytics, scheduled posts, and engagement metrics"
                 className="w-full h-auto"
-                loading="lazy"
+                width={1280}
+                height={720}
+                fetchPriority="high"
+                decoding="async"
               />
             </div>
           </div>

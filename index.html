@@ -21,10 +21,14 @@
     <link rel="dns-prefetch" href="https://suznvphdiuyqxsduycty.supabase.co" />
     <link rel="preconnect" href="https://suznvphdiuyqxsduycty.supabase.co" crossorigin />
 
-    <!-- Google Fonts - non-blocking preload -->
+    <!-- Google Fonts - preload critical font files -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hjQ.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
+
+    <!-- Preload hero image (LCP element) -->
+    <link rel="preload" href="/images/dashboard-preview.webp" as="image" type="image/webp" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/linkedbot-icon.png">
