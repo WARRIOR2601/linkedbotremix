@@ -4,9 +4,9 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { ExtensionStatus } from "@/components/ExtensionStatus";
 import { useLinkedInAPI } from "@/hooks/useLinkedInAPI";
-import { useLinkedInAnalytics } from "@/hooks/useLinkedInAnalytics";
 import { useDashboardProfile } from "@/contexts/DashboardContext";
-import { useAgents } from "@/hooks/useAgents";
+import { useDashboardData } from "@/hooks/useDashboardData";
+import type { DashboardScheduledPost } from "@/hooks/useDashboardData";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -52,25 +52,11 @@ interface PostAnalytics {
   updatedAt?: string;
 }
 
-interface ScheduledPost {
-  id: string;
-  content: string;
-  scheduled_time: string;
-  status: string;
-  posted_at?: string;
-  linkedin_post_url?: string;
-  verified?: boolean;
-  tracking_id?: string;
-  views_count?: number;
-  likes_count?: number;
-  comments_count?: number;
-  shares_count?: number;
-  last_synced_at?: string;
-}
+// ScheduledPost type now comes from useDashboardData hook
 
 // Helper to determine display status
 // Maps database status to display status
-function getPostDisplayStatus(post: ScheduledPost): 'published' | 'posted_pending' | 'posting' | 'queued' | 'failed' {
+function getPostDisplayStatus(post: DashboardScheduledPost): 'published' | 'posted_pending' | 'posting' | 'queued' | 'failed' {
   // If status is posted
   if (post.status === 'posted') {
     // Use proper URL validation - if we have any URL, consider it published
@@ -103,13 +89,19 @@ const DashboardPage = () => {
   usePageTitle("Dashboard");
   const navigate = useNavigate();
   const { isConnected } = useLinkedInAPI();
-  const { profile, isLoading: profileLoading, fetchProfile } = useDashboardProfile();
-  const { posts: analyticsPosts, isLoading: analyticsLoading } = useLinkedInAnalytics();
-  const { agents, isLoading: agentsLoading } = useAgents();
+  const { profile, isLoading: profileLoading } = useDashboardProfile();
   
-  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
-  const [postsLoading, setPostsLoading] = useState(true);
-  const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null);
+  // Single API call for all dashboard data (4 queries → 1 call)
+  const { 
+    analyticsPosts, 
+    agents, 
+    scheduledPosts, 
+    isLoading: dataLoading,
+    refetch: refetchData,
+    setScheduledPosts,
+  } = useDashboardData();
+  
+  const [selectedPost, setSelectedPost] = useState<DashboardScheduledPost | null>(null);
   const [showPostModal, setShowPostModal] = useState(false);
 
   // Delete post handler
@@ -125,35 +117,12 @@ const DashboardPage = () => {
       if (error) throw error;
       
       toast.success('Post deleted');
-      fetchPosts();
+      refetchData();
     } catch (err) {
       console.error('Failed to delete post:', err);
       toast.error('Failed to delete post');
     }
   };
-
-  // Fetch posts from database (scheduled + recently posted)
-  const fetchPosts = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from("posts")
-        .select("id, content, scheduled_time, status, posted_at, linkedin_post_url, verified, tracking_id, views_count, likes_count, comments_count, shares_count, last_synced_at")
-        .eq("user_id", user.id)
-        .in("status", ["pending", "posting", "posted", "failed"]) // v4.0 statuses
-        .order("scheduled_time", { ascending: true })
-        .limit(20);
-
-      if (error) throw error;
-      setScheduledPosts(data || []);
-    } catch (err) {
-      console.error("Error fetching posts:", err);
-    } finally {
-      setPostsLoading(false);
-    }
-  }, []);
 
   // Update post analytics in real-time from extension events
   const updatePostAnalytics = useCallback((trackingId: string, analytics: PostAnalytics) => {
@@ -171,12 +140,7 @@ const DashboardPage = () => {
           : post
       )
     );
-  }, []);
-
-  // Initial fetch
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
+  }, [setScheduledPosts]);
 
   // Real-time subscription for post status changes
   useEffect(() => {
@@ -198,19 +162,16 @@ const DashboardPage = () => {
           },
           (payload) => {
             console.log('📡 Real-time post update:', payload);
-            // Update the post in state immediately
             setScheduledPosts(prev => 
               prev.map(post => 
                 post.id === payload.new.id 
-                  ? { ...post, ...payload.new as ScheduledPost }
+                  ? { ...post, ...payload.new as DashboardScheduledPost }
                   : post
               )
             );
           }
         )
-        .subscribe((status) => {
-          console.log('Dashboard realtime subscription:', status);
-        });
+        .subscribe();
     };
 
     setupRealtimeSubscription();
@@ -220,14 +181,7 @@ const DashboardPage = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, []);
-
-  // Refetch on window focus only (realtime handles live updates)
-  useEffect(() => {
-    const handleFocus = () => fetchPosts();
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [fetchPosts]);
+  }, [setScheduledPosts]);
 
   // No extension event listeners needed - using LinkedIn API directly
 
@@ -510,7 +464,7 @@ const DashboardPage = () => {
                                     .eq('id', post.id);
                                   if (error) throw error;
                                   toast.success('Post marked as posted!');
-                                  fetchPosts();
+                                  refetchData();
                                 } catch (err) {
                                   console.error('Failed to mark as posted:', err);
                                   toast.error('Failed to update post status');
