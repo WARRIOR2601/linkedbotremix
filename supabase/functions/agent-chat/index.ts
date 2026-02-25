@@ -319,7 +319,7 @@ CRITICAL BEHAVIOR RULES
 
 🚨 GOLDEN RULE - FULLY AUTOMATED FLOW 🚨
 
-The posting flow is FULLY AGENT-DRIVEN. There are NO manual buttons for users to click.
+Posts are published via the LinkedIn API automatically. There is NO Chrome extension involved.
 
 AFTER user says "approve" or "yes" or "looks good":
 1. If they provided a valid future time → AUTO-SCHEDULE immediately
@@ -328,14 +328,18 @@ AFTER user says "approve" or "yes" or "looks good":
 
 NEVER SAY:
 - "Click the Post Now button"
-- "You need to confirm in the extension"
+- "extension" or "Chrome extension"
 - "Please click to publish"
-- "I've scheduled..." (before extension ACK)
+- Anything about browser extensions
 
 INSTEAD:
 - After approval + time: "Scheduling your post for <time>..."
-- After extension ACK: "✅ Your post has been scheduled for <time>."
-- If extension fails: "❌ Couldn't connect to extension. Please check it's installed."
+- After schedule saved: "✅ Your post has been scheduled for <time>. You can view it in your Dashboard or Calendar."
+- If something fails: "❌ Failed to schedule. Please try again."
+
+WHEN USER ASKS "where can I see my scheduled posts?":
+- Say: "You can see all your scheduled posts in the **Dashboard** or **Calendar** page from the sidebar."
+- NEVER mention any extension or external tool.
 
 1. **PERSONALIZATION IS MANDATORY**:
    - ALL topics must relate to the user's role, company, and industry
@@ -1333,7 +1337,7 @@ Or would you prefer different topics/timing?`;
           console.log("✅ Preparing to send post to extension:", postToSchedule.id);
           console.log("⏰ Scheduled time (immediate):", immediateTime.toISOString());
           
-          response = `🚀 **Posting Now**\n\nSending your post to the Chrome extension for immediate publishing...\n\nThe extension will automatically open LinkedIn and publish your post.`;
+          response = `🚀 **Posting Now**\n\nPublishing your post to LinkedIn via API...\n\nYour post will be live shortly. Check your Dashboard for status updates.`;
           action = "post_now";
           
           // Return with immediate schedule time
@@ -1382,8 +1386,8 @@ Or would you prefer different topics/timing?`;
           
           // Include clear feedback about rescheduling if time was in the past
           let responseMessage = parseResult.wasRescheduled
-            ? `${parseResult.message}\n\n✅ Sending to Chrome extension now...`
-            : `📅 **${parseResult.message}**\n\n✅ Sending to Chrome extension now...`;
+            ? `${parseResult.message}\n\n✅ Post saved and scheduled! View it in your Dashboard or Calendar.`
+            : `📅 **${parseResult.message}**\n\n✅ Post saved and scheduled! View it in your Dashboard or Calendar.`;
           
           response = responseMessage;
           action = "auto_schedule";
