@@ -232,13 +232,6 @@ const AgentChatPage = () => {
       const postToSchedule = response.postToSchedule;
       const scheduledTime = new Date(response.scheduledTime);
       
-      // Validate extension is connected
-      if (!isExtensionConnected) {
-        toast.error("❌ Extension not connected. Please install and connect the Chrome extension first.");
-        addActivityEntry("failed", "Extension not connected", postToSchedule.id);
-        return;
-      }
-
       // 🔐 Verify LinkedIn account before posting
       const linkedinVerified = (profile as any)?.linkedin_verified;
       const linkedinPublicId = (profile as any)?.linkedin_public_id || extractLinkedInId(profile?.linkedin_profile_url || '');
@@ -286,52 +279,16 @@ const AgentChatPage = () => {
       const savedPost = await savePostToDatabase(postToSave, scheduledTime);
       
       if (savedPost) {
-        // NOW add to Generated Posts (only after approval)
-        updatePost(savedPost.id, savedPost);
-        
-        // Send to extension immediately
-        addActivityEntry("sending", `Scheduling for ${format(scheduledTime, 'MMM d, h:mm a')}...`, savedPost.id);
-        
-        const validScheduledTime = scheduledTime.toISOString();
-        
-        if (!savedPost.trackingId) {
-          console.error("❌ Missing trackingId on saved post");
-          addActivityEntry("failed", "Missing tracking ID", savedPost.id);
-          toast.error("Failed to schedule: missing tracking ID");
-          return;
-        }
-        
-        // v4.0 - Simple payload (NO user_id - extension doesn't need it)
-        const postForExtension = {
-          id: savedPost.dbId || savedPost.id,
-          trackingId: savedPost.trackingId,
-          content: savedPost.content,
-          imageUrl: savedPost.imageUrl || undefined,
-          scheduleTime: validScheduledTime, // v4.0 renamed from scheduledTime
+        // Add to Generated Posts panel
+        const finalPost = { 
+          ...savedPost, 
+          status: 'pending' as PostStatus,
         };
         
-        console.log("📤 Sending to extension (v4.0 - no user_id):", postForExtension);
+        setGeneratedPosts(prev => [finalPost, ...prev.filter(p => p.id !== finalPost.id)]);
         
-        const result = await sendPendingPosts([postForExtension]);
-        
-        if (result.success) {
-          // Add to Generated Posts panel
-          const finalPost = { 
-            ...savedPost, 
-            status: 'pending' as PostStatus, // Keep as pending - extension will update
-          };
-          
-          setGeneratedPosts(prev => [finalPost, ...prev.filter(p => p.id !== finalPost.id)]);
-          
-          addActivityEntry("scheduled", `Queued for ${format(scheduledTime, 'MMM d, h:mm a')}`, savedPost.id);
-          toast.success(`✅ Post created! Extension will publish at ${format(scheduledTime, 'MMM d, h:mm a')}`);
-          
-          // ✅ CLEAN ARCHITECTURE: Website does NOT update status
-          // Extension polls Supabase and updates status to posting/posted/failed
-        } else {
-          addActivityEntry("failed", result.error || "Failed to send to extension", savedPost.id);
-          toast.error(result.error || "❌ Failed to send to extension");
-        }
+        addActivityEntry("scheduled", `Scheduled for ${format(scheduledTime, 'MMM d, h:mm a')}`, savedPost.id);
+        toast.success(`✅ Post scheduled for ${format(scheduledTime, 'MMM d, h:mm a')}. View it in Dashboard or Calendar.`);
       }
     }
   };
