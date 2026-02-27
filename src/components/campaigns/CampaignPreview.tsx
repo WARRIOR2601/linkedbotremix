@@ -14,6 +14,8 @@ import {
   Clock,
   Search,
   FileText,
+  Hash,
+  Type,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -36,12 +38,25 @@ interface CampaignDetails {
   auto_best_time: boolean;
   auto_approve: boolean;
   status: string;
+  content_length: string;
+  emoji_level: string;
+  hashtag_mode: string;
+  footer_text: string;
 }
 
 interface CampaignPreviewProps {
   campaignId: string;
   onClose: () => void;
   onApproveAll: () => void;
+}
+
+function getWordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function getReadingTime(wordCount: number): string {
+  const minutes = Math.ceil(wordCount / 200);
+  return minutes <= 1 ? "< 1 min read" : `${minutes} min read`;
 }
 
 export function CampaignPreview({ campaignId, onClose, onApproveAll }: CampaignPreviewProps) {
@@ -165,9 +180,23 @@ export function CampaignPreview({ campaignId, onClose, onApproveAll }: CampaignP
                 {campaign.auto_best_time && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Auto Time</Badge>}
                 {campaign.research_mode && <Badge variant="outline" className="text-[10px] px-1.5 py-0"><Search className="w-2.5 h-2.5 mr-0.5" />Research</Badge>}
                 {campaign.auto_approve && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Auto-Approve</Badge>}
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
+                  <Type className="w-2.5 h-2.5 mr-0.5" />{campaign.content_length || "medium"}
+                </Badge>
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
+                  <Hash className="w-2.5 h-2.5 mr-0.5" />{campaign.hashtag_mode || "auto"}
+                </Badge>
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Footer preview */}
+      {campaign?.footer_text && (
+        <div className="mb-4 p-3 rounded-lg bg-muted/50 border border-border">
+          <p className="text-xs font-medium text-muted-foreground mb-1">Auto Footer:</p>
+          <p className="text-xs whitespace-pre-wrap text-foreground/80">{campaign.footer_text}</p>
         </div>
       )}
 
@@ -181,63 +210,82 @@ export function CampaignPreview({ campaignId, onClose, onApproveAll }: CampaignP
       ) : (
         <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Generated Posts</h3>
-          {posts.map((post, index) => (
-            <div
-              key={post.id}
-              className="p-5 rounded-xl border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-primary">Day {index + 1}</span>
-                  <Badge variant="outline" className={statusColor(post.status)}>
-                    {post.status}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Calendar className="w-3 h-3" />
-                  {post.scheduled_time
-                    ? format(new Date(post.scheduled_time), "MMM d, h:mm a")
-                    : "Not scheduled"}
-                </div>
-              </div>
+          {posts.map((post, index) => {
+            const wordCount = getWordCount(post.content);
+            const charCount = post.content.length;
+            const readingTime = getReadingTime(wordCount);
 
-              {editingId === post.id ? (
-                <div className="space-y-3">
-                  <Textarea
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    rows={6}
-                    className="text-sm"
-                  />
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleSaveEdit(post.id)} className="gap-1">
-                      <Save className="w-3 h-3" />
-                      Save
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
-                      Cancel
-                    </Button>
+            return (
+              <div
+                key={post.id}
+                className="p-5 rounded-xl border border-border bg-muted/30 hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-primary">Day {index + 1}</span>
+                    <Badge variant="outline" className={statusColor(post.status)}>
+                      {post.status}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Calendar className="w-3 h-3" />
+                    {post.scheduled_time
+                      ? format(new Date(post.scheduled_time), "MMM d, h:mm a")
+                      : "Not scheduled"}
                   </div>
                 </div>
-              ) : (
-                <div>
-                  <p className="text-sm whitespace-pre-wrap leading-relaxed">{post.content}</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2 text-xs"
-                    onClick={() => {
-                      setEditingId(post.id);
-                      setEditContent(post.content);
-                    }}
-                  >
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
-                </div>
-              )}
-            </div>
-          ))}
+
+                {editingId === post.id ? (
+                  <div className="space-y-3">
+                    <Textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      rows={6}
+                      className="text-sm"
+                    />
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => handleSaveEdit(post.id)} className="gap-1">
+                          <Save className="w-3 h-3" />
+                          Save
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setEditingId(null)}>
+                          Cancel
+                        </Button>
+                      </div>
+                      <div className="text-xs text-muted-foreground space-x-3">
+                        <span>{getWordCount(editContent)} words</span>
+                        <span>{editContent.length} chars</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{post.content}</p>
+                    <div className="flex items-center justify-between mt-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => {
+                          setEditingId(post.id);
+                          setEditContent(post.content);
+                        }}
+                      >
+                        <Edit className="w-3 h-3 mr-1" />
+                        Edit
+                      </Button>
+                      <div className="text-xs text-muted-foreground space-x-3">
+                        <span>{wordCount} words</span>
+                        <span>{charCount} chars</span>
+                        <span>{readingTime}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
