@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Loader2, Search, Sparkles, X } from "lucide-react";
+import { CalendarIcon, Loader2, Search, Sparkles, X, Type, Smile, Hash, Image, FileSignature } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -19,17 +20,44 @@ interface CampaignSetupFormProps {
 
 const toneOptions = [
   { value: "auto", label: "Auto-detect", desc: "AI chooses based on topic" },
+  { value: "professional", label: "Professional", desc: "Formal, authoritative" },
   { value: "storyteller", label: "Storyteller", desc: "Personal, narrative-driven" },
-  { value: "analyst", label: "Data-Driven Analyst", desc: "Stats and insights" },
-  { value: "creator", label: "Conversational Creator", desc: "Punchy and relatable" },
-  { value: "motivator", label: "Motivational Builder", desc: "Bold and inspiring" },
-  { value: "educator", label: "Educational Breakdown", desc: "Structured and informative" },
+  { value: "analyst", label: "Data-Driven", desc: "Stats and insights" },
+  { value: "creator", label: "Conversational", desc: "Punchy and relatable" },
+  { value: "motivator", label: "Motivational", desc: "Bold and inspiring" },
+  { value: "educator", label: "Educational", desc: "Structured and informative" },
+  { value: "casual", label: "Casual", desc: "Friendly and relaxed" },
 ];
 
 const durationOptions = [
   { value: "7_days", label: "Next 7 Days", desc: "One post per day for a week" },
   { value: "alternate", label: "Alternate Days", desc: "Post every other day for 2 weeks" },
   { value: "custom", label: "Custom Range", desc: "Pick your own dates" },
+];
+
+const contentLengthOptions = [
+  { value: "short", label: "Short", desc: "100–150 words" },
+  { value: "medium", label: "Medium", desc: "200–300 words" },
+  { value: "long", label: "Long", desc: "400+ words" },
+];
+
+const emojiLevelOptions = [
+  { value: "none", label: "None", desc: "No emojis" },
+  { value: "low", label: "Low", desc: "1-2 emojis" },
+  { value: "moderate", label: "Medium", desc: "3-5 emojis" },
+  { value: "high", label: "High", desc: "Emoji-rich" },
+];
+
+const hashtagOptions = [
+  { value: "auto", label: "Auto-generate", desc: "AI picks relevant hashtags" },
+  { value: "manual", label: "Manual", desc: "You specify hashtags" },
+  { value: "none", label: "No Hashtags", desc: "Skip hashtags entirely" },
+];
+
+const imageOptions = [
+  { value: "none", label: "No Image", desc: "Text-only posts" },
+  { value: "ai", label: "AI Generate", desc: "Auto-generate images" },
+  { value: "upload", label: "Upload", desc: "Upload your own (coming soon)" },
 ];
 
 export function CampaignSetupForm({ onSubmit, onCancel, isGenerating }: CampaignSetupFormProps) {
@@ -43,6 +71,14 @@ export function CampaignSetupForm({ onSubmit, onCancel, isGenerating }: Campaign
   const [autoBestTime, setAutoBestTime] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
   const [postingTime, setPostingTime] = useState("09:00");
+
+  // Content controls
+  const [contentLength, setContentLength] = useState("medium");
+  const [emojiLevel, setEmojiLevel] = useState("moderate");
+  const [hashtagMode, setHashtagMode] = useState("auto");
+  const [fixedHashtags, setFixedHashtags] = useState("");
+  const [footerText, setFooterText] = useState("");
+  const [imageOption, setImageOption] = useState("none");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,11 +94,18 @@ export function CampaignSetupForm({ onSubmit, onCancel, isGenerating }: Campaign
       researchMode,
       autoBestTime,
       autoApprove,
+      postingTime: !autoBestTime ? postingTime : undefined,
+      contentLength,
+      emojiLevel,
+      hashtagMode,
+      fixedHashtags: hashtagMode === "manual" ? fixedHashtags.split(",").map(h => h.trim()).filter(Boolean) : [],
+      footerText: footerText.trim(),
+      imageOption,
     });
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-border shadow-lg p-6 animate-fade-in">
+    <div className="bg-card rounded-2xl border border-border shadow-lg p-6 animate-fade-in max-h-[85vh] overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />
@@ -186,6 +229,119 @@ export function CampaignSetupForm({ onSubmit, onCancel, isGenerating }: Campaign
           </Select>
         </div>
 
+        {/* Content Length */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2"><Type className="w-4 h-4 text-primary" /> Content Length</Label>
+          <div className="grid grid-cols-3 gap-3">
+            {contentLengthOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setContentLength(opt.value)}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all",
+                  contentLength === opt.value
+                    ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                    : "border-border hover:border-primary/40"
+                )}
+              >
+                <p className="font-medium text-sm">{opt.label}</p>
+                <p className="text-xs text-muted-foreground">{opt.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Emoji Level */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2"><Smile className="w-4 h-4 text-primary" /> Emoji Level</Label>
+          <div className="grid grid-cols-4 gap-3">
+            {emojiLevelOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setEmojiLevel(opt.value)}
+                className={cn(
+                  "p-3 rounded-xl border text-center transition-all",
+                  emojiLevel === opt.value
+                    ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                    : "border-border hover:border-primary/40"
+                )}
+              >
+                <p className="font-medium text-sm">{opt.label}</p>
+                <p className="text-xs text-muted-foreground">{opt.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Hashtags */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2"><Hash className="w-4 h-4 text-primary" /> Hashtags</Label>
+          <div className="grid grid-cols-3 gap-3">
+            {hashtagOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setHashtagMode(opt.value)}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all",
+                  hashtagMode === opt.value
+                    ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                    : "border-border hover:border-primary/40"
+                )}
+              >
+                <p className="font-medium text-sm">{opt.label}</p>
+                <p className="text-xs text-muted-foreground">{opt.desc}</p>
+              </button>
+            ))}
+          </div>
+          {hashtagMode === "manual" && (
+            <Input
+              placeholder='#AI, #StartupLife, #Growth'
+              value={fixedHashtags}
+              onChange={(e) => setFixedHashtags(e.target.value)}
+              className="mt-2"
+            />
+          )}
+        </div>
+
+        {/* Image Option */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2"><Image className="w-4 h-4 text-primary" /> Image Option</Label>
+          <div className="grid grid-cols-3 gap-3">
+            {imageOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setImageOption(opt.value)}
+                className={cn(
+                  "p-3 rounded-xl border text-left transition-all",
+                  imageOption === opt.value
+                    ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                    : "border-border hover:border-primary/40"
+                )}
+              >
+                <p className="font-medium text-sm">{opt.label}</p>
+                <p className="text-xs text-muted-foreground">{opt.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer / Signature */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2"><FileSignature className="w-4 h-4 text-primary" /> Auto Footer / Signature</Label>
+          <Textarea
+            placeholder={"— Your Name\nCEO & Founder | Company\nYour tagline here"}
+            value={footerText}
+            onChange={(e) => setFooterText(e.target.value)}
+            rows={3}
+            className="text-sm"
+          />
+          <p className="text-xs text-muted-foreground">This text will be appended to the end of every generated post</p>
+        </div>
+
         {/* Toggles */}
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border">
@@ -209,7 +365,7 @@ export function CampaignSetupForm({ onSubmit, onCancel, isGenerating }: Campaign
 
           {!autoBestTime && (
             <div className="space-y-2 p-4 rounded-xl bg-muted/50 border border-border">
-              <Label htmlFor="postingTime" className="font-medium text-sm">Preferred Posting Time</Label>
+              <Label htmlFor="postingTime" className="font-medium text-sm">Preferred Posting Time (IST)</Label>
               <Input
                 id="postingTime"
                 type="time"
@@ -217,7 +373,7 @@ export function CampaignSetupForm({ onSubmit, onCancel, isGenerating }: Campaign
                 onChange={(e) => setPostingTime(e.target.value)}
                 className="w-full max-w-[200px]"
               />
-              <p className="text-xs text-muted-foreground">All posts will be scheduled at this time</p>
+              <p className="text-xs text-muted-foreground">All posts will be scheduled at this time (Indian Standard Time)</p>
             </div>
           )}
 

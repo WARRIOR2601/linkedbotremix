@@ -17,6 +17,13 @@ export interface Campaign {
   status: string;
   created_at: string;
   updated_at: string;
+  content_length: string;
+  emoji_level: string;
+  hashtag_mode: string;
+  fixed_hashtags: string[];
+  footer_text: string;
+  image_option: string;
+  posting_time: string;
 }
 
 export interface CampaignFormData {
@@ -29,6 +36,13 @@ export interface CampaignFormData {
   researchMode: boolean;
   autoBestTime: boolean;
   autoApprove: boolean;
+  postingTime?: string;
+  contentLength: string;
+  emojiLevel: string;
+  hashtagMode: string;
+  fixedHashtags: string[];
+  footerText: string;
+  imageOption: string;
 }
 
 export function useCampaigns() {
@@ -61,7 +75,6 @@ export function useCampaigns() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Calculate dates
       const startDate = formData.startDate;
       let endDate: Date;
       let postCount: number;
@@ -94,6 +107,13 @@ export function useCampaigns() {
           research_mode: formData.researchMode,
           auto_best_time: formData.autoBestTime,
           auto_approve: formData.autoApprove,
+          posting_time: formData.postingTime || "09:00",
+          content_length: formData.contentLength,
+          emoji_level: formData.emojiLevel,
+          hashtag_mode: formData.hashtagMode,
+          fixed_hashtags: formData.fixedHashtags,
+          footer_text: formData.footerText,
+          image_option: formData.imageOption,
           status: "draft",
         })
         .select()
@@ -153,7 +173,6 @@ export function useCampaigns() {
 
   const deleteCampaign = useCallback(async (campaignId: string) => {
     try {
-      // Delete associated posts first
       await supabase.from("posts").delete().eq("campaign_id", campaignId);
       const { error } = await supabase.from("campaigns").delete().eq("id", campaignId);
       if (error) throw error;
@@ -166,7 +185,6 @@ export function useCampaigns() {
 
   const approveCampaignPosts = useCallback(async (campaignId: string) => {
     try {
-      // Update all draft posts in this campaign to pending
       const { error } = await supabase
         .from("posts")
         .update({ status: "pending" })
@@ -175,7 +193,6 @@ export function useCampaigns() {
 
       if (error) throw error;
 
-      // Update campaign to active
       await supabase.from("campaigns").update({ status: "active" }).eq("id", campaignId);
       await fetchCampaigns();
       toast.success("All posts approved and scheduled!");
@@ -188,7 +205,6 @@ export function useCampaigns() {
     fetchCampaigns();
   }, [fetchCampaigns]);
 
-  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel("campaigns-changes")

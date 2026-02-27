@@ -15,14 +15,34 @@ function pickBestTime(dayIndex: number): { hour: number; minute: number } {
   return { hour, minute };
 }
 
+function parsePostingTime(timeStr: string): { hour: number; minute: number } {
+  const [h, m] = timeStr.split(":").map(Number);
+  return { hour: h || 9, minute: m || 0 };
+}
+
 // Writing DNA tone prompts
 const TONE_PROMPTS: Record<string, string> = {
+  professional: `Write in a Professional voice. Authoritative, clear, and formal. No slang, no overly casual language. Demonstrate expertise and credibility.`,
   storyteller: `Write in a Storytelling Founder voice. Open with a personal memory or timeline. Use "I thought... but then I learned..." pattern. Be vulnerable, warm, reflective. Medium length, no bullet points.`,
   analyst: `Write in a Data-Driven Analyst voice. Open with a statistic or surprising number. Use percentages, comparisons, trend data. Objective tone, minimal personal opinion. End with "so what does this mean?"`,
   creator: `Write in a Conversational Creator voice. Short punchy sentences. Talk directly to reader ("You're doing this wrong"). Relatable, slightly provocative, casual. Heavy white space and line breaks.`,
   motivator: `Write in a Motivational Builder voice. Bold one-liner openers. Use contrast ("X won't save you. Y will."). Inspirational, direct, calls to action. Short posts, maximum impact.`,
   educator: `Write in an Educational Breakdown voice. Structured with numbered or labeled sections. "Here's how X works: 1. ... 2. ... 3. ..." Authority voice, helpful, informative. End with a forward-looking statement.`,
+  casual: `Write in a Casual, friendly voice. Relaxed tone, like talking to a friend. Use contractions, informal language. Warm and approachable.`,
   auto: `Write in a professional, engaging LinkedIn voice. Vary between storytelling, data-driven insights, and conversational styles across different posts.`,
+};
+
+const CONTENT_LENGTH_RULES: Record<string, string> = {
+  short: "Keep each post between 100-150 words. Be concise and impactful.",
+  medium: "Keep each post between 200-300 words. Good balance of depth and readability.",
+  long: "Write detailed posts of 400+ words. Deep insights, thorough coverage.",
+};
+
+const EMOJI_RULES: Record<string, string> = {
+  none: "Do NOT use any emojis at all.",
+  low: "Use 1-2 emojis per post, sparingly and strategically.",
+  moderate: "Use 3-5 emojis per post to add visual interest.",
+  high: "Use emojis liberally throughout the post for engagement and visual appeal.",
 };
 
 serve(async (req) => {
@@ -105,7 +125,6 @@ serve(async (req) => {
         current.setDate(current.getDate() + 2);
       }
     } else {
-      // daily or custom
       let current = new Date(startDate);
       while (current <= endDate && postDates.length < campaign.post_count) {
         postDates.push(new Date(current));
@@ -144,6 +163,25 @@ serve(async (req) => {
     const toneType = writingDna?.tone_type || campaign.tone_type || "auto";
     const tonePrompt = TONE_PROMPTS[toneType] || TONE_PROMPTS.auto;
 
+    // Content settings from campaign
+    const contentLengthRule = CONTENT_LENGTH_RULES[campaign.content_length || "medium"] || CONTENT_LENGTH_RULES.medium;
+    const emojiRule = EMOJI_RULES[campaign.emoji_level || "moderate"] || EMOJI_RULES.moderate;
+
+    // Hashtag rules
+    let hashtagRule = "";
+    if (campaign.hashtag_mode === "none") {
+      hashtagRule = "Do NOT include any hashtags.";
+    } else if (campaign.hashtag_mode === "manual" && campaign.fixed_hashtags?.length > 0) {
+      hashtagRule = `Always include these hashtags at the end: ${campaign.fixed_hashtags.map((h: string) => h.startsWith("#") ? h : `#${h}`).join(" ")}`;
+    } else {
+      hashtagRule = "Add 3-5 relevant hashtags at the end of each post.";
+    }
+
+    // Footer
+    const footerRule = campaign.footer_text
+      ? `\nIMPORTANT: Append this exact footer at the end of every post (after a blank line):\n"${campaign.footer_text}"\nDo NOT modify or paraphrase the footer. Do NOT duplicate it if the content already ends with similar text.`
+      : "";
+
     // Build DNA context
     let dnaContext = "";
     if (writingDna) {
@@ -178,14 +216,16 @@ USER PROFILE:
 ${dnaContext}
 ${researchInsights}
 
-RULES:
+CONTENT RULES:
 1. Each post MUST be unique with a different angle on the topic
 2. Vary post structure across the campaign (hooks, stories, data, questions)
 3. Write as the user, not as an AI
-4. Keep each post between 100-250 words
-5. No hashtags unless the user's DNA shows hashtag usage
-6. Make each post a standalone piece that can be read independently
-7. Number each post clearly as "Post 1:", "Post 2:", etc.
+4. ${contentLengthRule}
+5. ${emojiRule}
+6. ${hashtagRule}
+7. Make each post a standalone piece that can be read independently
+8. Number each post clearly as "Post 1:", "Post 2:", etc.
+${footerRule}
 
 Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST_SEPARATOR---"`;
 
@@ -248,17 +288,29 @@ Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST
       p.replace(/^Post\s*\d+\s*:\s*/i, "").trim()
     );
 
-    // Create posts in database
+    // Create posts in database with proper timezone handling
     const postsToInsert = cleanPosts.slice(0, postDates.length).map((content: string, i: number) => {
       const postDate = postDates[i];
-      const { hour, minute } = campaign.auto_best_time
-        ? pickBestTime(i)
-        : { hour: 10, minute: 0 };
+      
+      let hour: number, minute: number;
+      if (campaign.auto_best_time) {
+        ({ hour, minute } = pickBestTime(i));
+      } else {
+        // Use user's selected posting time (in IST)
+        ({ hour, minute } = parsePostingTime(campaign.posting_time || "09:00"));
+      }
 
-      // Create scheduled time in IST
+      // Create scheduled time: postDate at hour:minute IST
+      // IST = UTC + 5:30, so subtract 5h30m to get UTC
       const scheduledTime = new Date(postDate);
-      // Convert IST to UTC: IST = UTC + 5:30
-      scheduledTime.setUTCHours(hour - 5, minute - 30, 0, 0);
+      const utcHour = hour - 5;
+      const utcMinute = minute - 30;
+      scheduledTime.setUTCHours(utcHour, utcMinute, 0, 0);
+      
+      // Handle minute underflow
+      if (utcMinute < 0) {
+        scheduledTime.setUTCHours(utcHour - 1, utcMinute + 60, 0, 0);
+      }
 
       return {
         user_id: user.id,
