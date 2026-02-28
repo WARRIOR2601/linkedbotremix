@@ -237,7 +237,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: "Failed to publish post. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

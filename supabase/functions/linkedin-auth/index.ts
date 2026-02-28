@@ -70,7 +70,7 @@ serve(async (req) => {
         const errData = await tokenRes.text();
         console.error("Token exchange failed:", errData);
         return new Response(
-          JSON.stringify({ error: "Failed to exchange token", details: errData }),
+          JSON.stringify({ error: "Failed to exchange token" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
@@ -251,7 +251,7 @@ serve(async (req) => {
   } catch (err) {
     console.error("LinkedIn auth error:", err);
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: "An unexpected error occurred. Please try again." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
