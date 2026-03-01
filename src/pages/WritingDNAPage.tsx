@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { useWritingDNA } from "@/hooks/useWritingDNA";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import {
   Dna,
   Plus,
@@ -20,6 +22,10 @@ import {
   ListOrdered,
   Smile,
   Type,
+  Upload,
+  FileText,
+  Image as ImageIcon,
+  CheckCircle2,
 } from "lucide-react";
 
 const WritingDNAPage = () => {
@@ -27,6 +33,9 @@ const WritingDNAPage = () => {
   const { dna, isLoading, isAnalyzing, analyzePosts } = useWritingDNA();
   const [samplePosts, setSamplePosts] = useState<string[]>(["", "", ""]);
   const [showImport, setShowImport] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAnalyze = async () => {
     const validPosts = samplePosts.filter((p) => p.trim().length > 20);
