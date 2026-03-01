@@ -71,6 +71,7 @@ const CampaignsPage = () => {
           onPause={(id) => updateCampaignStatus(id, "paused")}
           onResume={(id) => updateCampaignStatus(id, "active")}
           onDelete={deleteCampaign}
+          onActivate={(id) => approveCampaignPosts(id)}
         />
       </div>
     </DashboardLayout>
