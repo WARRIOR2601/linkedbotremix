@@ -1,12 +1,17 @@
 import React from "react";
-import { useLinkedInAPI } from "@/hooks/useLinkedInAPI";
-import { CheckCircle, Linkedin, Loader2, ExternalLink } from "lucide-react";
+import { CheckCircle, Linkedin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 
-export const ExtensionStatus: React.FC = () => {
-  const { isConnected, isLoading, getAuthUrl, disconnect } = useLinkedInAPI();
+interface ExtensionStatusProps {
+  isConnected: boolean;
+  isLoading: boolean;
+  getAuthUrl: () => Promise<string | null>;
+  disconnect: () => Promise<boolean>;
+}
+
+export const ExtensionStatus: React.FC<ExtensionStatusProps> = ({ isConnected, isLoading, getAuthUrl, disconnect }) => {
 
   const handleConnect = async () => {
     const authUrl = await getAuthUrl();
@@ -27,18 +32,8 @@ export const ExtensionStatus: React.FC = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <Card className="bg-card border-border">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-            <span className="ml-2 text-muted-foreground">Checking LinkedIn connection...</span>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Don't show a blocking loading card — let the dashboard render immediately
+  if (isLoading) return null;
 
   if (!isConnected) {
     return (
