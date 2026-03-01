@@ -200,9 +200,20 @@ serve(async (req) => {
     }
 
     // Update post in database
-    const linkedinPostUrl = linkedinPostId
-      ? `https://www.linkedin.com/feed/update/${linkedinPostId}`
-      : null;
+    // LinkedIn UGC API returns urn:li:ugcPost:XXX or urn:li:share:XXX
+    // The working URL format requires urn:li:activity:XXX
+    let linkedinPostUrl: string | null = null;
+    if (linkedinPostId) {
+      // Extract numeric ID from any URN format
+      const numericId = linkedinPostId.match(/(\d{19,})/)?.[1];
+      if (numericId) {
+        linkedinPostUrl = `https://www.linkedin.com/feed/update/urn:li:activity:${numericId}`;
+      } else {
+        // Fallback: use the raw ID with activity format
+        linkedinPostUrl = `https://www.linkedin.com/feed/update/${linkedinPostId}`;
+      }
+      console.log('📎 LinkedIn post URL:', linkedinPostUrl, '(from ID:', linkedinPostId, ')');
+    }
 
     if (postId) {
       await supabaseAdmin.from("posts").update({
