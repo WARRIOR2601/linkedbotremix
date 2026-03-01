@@ -294,9 +294,9 @@ const AnalyticsPage = () => {
                 Install the <strong>LinkedBot Chrome Extension</strong> to scrape and sync your LinkedIn analytics automatically.
               </span>
               <Button size="sm" asChild className="gap-1.5">
-                <a href="https://chromewebstore.google.com/detail/linkedbot" target="_blank" rel="noopener noreferrer">
-                  <Download className="w-3.5 h-3.5" />
-                  Install Extension
+                <a href="https://chromewebstore.google.com/detail/linkedbot-linkedin-automa/mmdcbopjeijbhecfnnpjehledechmbbo" target="_blank" rel="noopener noreferrer">
+                   <Download className="w-3.5 h-3.5" />
+                   Install Extension
                 </a>
               </Button>
             </AlertDescription>
@@ -358,24 +358,42 @@ const AnalyticsPage = () => {
           /* Empty / Extension Install State */
           <div className="animate-fade-up">
             <div className="bg-card rounded-2xl border border-border p-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Chrome className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Install LinkedBot Extension</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                To view your LinkedIn analytics, install the LinkedBot Chrome Extension. It scrapes your post metrics directly from LinkedIn.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button asChild className="gap-2">
-                  <a href="https://chromewebstore.google.com/detail/linkedbot" target="_blank" rel="noopener noreferrer">
-                    <Download className="w-4 h-4" />
-                    Install Chrome Extension
-                  </a>
-                </Button>
-                <Button variant="outline" onClick={handleSyncAnalytics} disabled={!isConnected || isSyncing}>
-                  {isSyncing ? "Syncing..." : "Sync Now"}
-                </Button>
-              </div>
+              {isConnected ? (
+                <>
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="w-8 h-8 text-emerald-500" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">No Analytics Data Yet</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Your extension is connected! Publish some posts first, then click "Sync Profile" to scrape your LinkedIn analytics.
+                  </p>
+                  <Button onClick={handleSyncAnalytics} disabled={isSyncing} className="gap-2">
+                    {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                    {isSyncing ? "Syncing..." : "Sync Now"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <Chrome className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Install LinkedBot Extension</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    To view your LinkedIn analytics, install the LinkedBot Chrome Extension. It scrapes your post metrics directly from LinkedIn.
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <Button asChild className="gap-2">
+                      <a href="https://chromewebstore.google.com/detail/linkedbot-linkedin-automa/mmdcbopjeijbhecfnnpjehledechmbbo" target="_blank" rel="noopener noreferrer">
+                        <Download className="w-4 h-4" />
+                        Install Chrome Extension
+                      </a>
+                    </Button>
+                    <Button variant="outline" onClick={handleSyncAnalytics} disabled={!isConnected || isSyncing}>
+                      {isSyncing ? "Syncing..." : "Sync Now"}
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ) : (
