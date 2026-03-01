@@ -929,8 +929,12 @@ function detectIntent(message: string, uploadedImages?: string[]): { type: strin
     }
   }
 
+  // Check LinkedIn connection status question
+  if (/linkedin.*(connect|link|status|setup)/i.test(lower) || /connect.*linkedin/i.test(lower) || /is.*linkedin/i.test(lower)) {
+    return { type: "check_linkedin" };
+  }
+
   // Multi-post request (needs confirmation first)
-  const multiPostPatterns = [
     /create\s+posts?\s+for\s+(?:the\s+)?(?:next\s+)?\d+\s*days?/i,
     /generate\s+\d+\s*posts?/i,
     /(?:a\s+)?week(?:'s)?\s+(?:worth\s+)?(?:of\s+)?content/i,
