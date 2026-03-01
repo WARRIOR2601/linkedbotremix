@@ -48,6 +48,12 @@ import {
   AlertCircle,
   Bot,
   HardDrive,
+  Target,
+  Megaphone,
+  Hash,
+  UserCheck,
+  Briefcase,
+  FileText,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
@@ -84,6 +90,19 @@ interface AdminUser {
   created_at: string;
   last_active_at: string | null;
   onboarding_completed: boolean;
+  user_type: string | null;
+  background: string | null;
+  company_description: string | null;
+  target_audience: string | null;
+  location: string | null;
+  default_topics: string[] | null;
+  posting_goals: string[] | null;
+  preferred_tone: string | null;
+  post_frequency: string | null;
+  linkedin_username: string | null;
+  linkedin_verified: boolean;
+  linkedin_profile_confirmed: boolean;
+  linkedin_id: string | null;
 }
 
 const AdminPage = () => {
