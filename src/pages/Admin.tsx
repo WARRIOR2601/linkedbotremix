@@ -551,7 +551,7 @@ const AdminPage = () => {
 
         {/* User Details Dialog */}
         <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
@@ -559,7 +559,7 @@ const AdminPage = () => {
               </DialogTitle>
             </DialogHeader>
             {selectedUser && (
-              <div className="space-y-6">
+              <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                 {/* Basic Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -581,46 +581,157 @@ const AdminPage = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">LinkedIn</p>
-                    {selectedUser.linkedin_profile_url ? (
-                      <a
-                        href={selectedUser.linkedin_profile_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1"
-                      >
-                        <Linkedin className="w-3 h-3" />
-                        View Profile
-                      </a>
-                    ) : (
-                      <p className="text-muted-foreground">—</p>
-                    )}
+                    <p className="text-sm text-muted-foreground">User Type</p>
+                    <Badge variant="outline" className="capitalize mt-1">
+                      {selectedUser.user_type || "—"}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* LinkedIn Details */}
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Linkedin className="w-4 h-4 text-primary" />
+                    LinkedIn Info
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Profile URL</p>
+                      {selectedUser.linkedin_profile_url ? (
+                        <a
+                          href={selectedUser.linkedin_profile_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline text-sm break-all"
+                        >
+                          {selectedUser.linkedin_profile_url}
+                        </a>
+                      ) : (
+                        <p className="text-muted-foreground">—</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Username</p>
+                      <p className="font-medium">{selectedUser.linkedin_username || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">LinkedIn ID</p>
+                      <p className="font-medium text-xs font-mono">{selectedUser.linkedin_id || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Verified</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={selectedUser.linkedin_verified ? "default" : "secondary"}>
+                          {selectedUser.linkedin_verified ? "✅ Verified" : "❌ Not Verified"}
+                        </Badge>
+                        {selectedUser.linkedin_profile_confirmed && (
+                          <Badge variant="outline">Confirmed</Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Location & Company */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Location</p>
-                    <p className="font-medium flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {[selectedUser.city, selectedUser.country].filter(Boolean).join(", ") || "—"}
-                    </p>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    Profile & Company
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Location</p>
+                      <p className="font-medium flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {[selectedUser.city, selectedUser.country].filter(Boolean).join(", ") || selectedUser.location || "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Company</p>
+                      <p className="font-medium">{selectedUser.company_name || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Industry</p>
+                      <p className="font-medium capitalize">{selectedUser.industry || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Role / Profession</p>
+                      <p className="font-medium flex items-center gap-1">
+                        <Briefcase className="w-3 h-3" />
+                        {selectedUser.role || "—"}
+                      </p>
+                    </div>
+                    {selectedUser.company_description && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-muted-foreground">Company Description</p>
+                        <p className="text-sm mt-1">{selectedUser.company_description}</p>
+                      </div>
+                    )}
+                    {selectedUser.background && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-muted-foreground">Background</p>
+                        <p className="text-sm mt-1">{selectedUser.background}</p>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Company</p>
-                    <p className="font-medium flex items-center gap-1">
-                      <Building2 className="w-3 h-3" />
-                      {selectedUser.company_name || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Industry</p>
-                    <p className="font-medium capitalize">{selectedUser.industry || "—"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Role/Profession</p>
-                    <p className="font-medium">{selectedUser.role || "—"}</p>
+                </div>
+
+                {/* Content Preferences */}
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h4 className="font-medium mb-3 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Content Preferences
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Target Audience</p>
+                      <p className="font-medium flex items-center gap-1">
+                        <Target className="w-3 h-3" />
+                        {selectedUser.target_audience || "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Preferred Tone</p>
+                      <p className="font-medium flex items-center gap-1">
+                        <Megaphone className="w-3 h-3" />
+                        {selectedUser.preferred_tone || "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Post Frequency</p>
+                      <p className="font-medium">{selectedUser.post_frequency || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Onboarding</p>
+                      <Badge variant={selectedUser.onboarding_completed ? "default" : "secondary"}>
+                        {selectedUser.onboarding_completed ? "✅ Completed" : "⏳ Incomplete"}
+                      </Badge>
+                    </div>
+                    {selectedUser.default_topics && selectedUser.default_topics.length > 0 && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-muted-foreground mb-1">Default Topics</p>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedUser.default_topics.map((topic, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">
+                              <Hash className="w-2.5 h-2.5 mr-0.5" />
+                              {topic}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {selectedUser.posting_goals && selectedUser.posting_goals.length > 0 && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-muted-foreground mb-1">Posting Goals</p>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedUser.posting_goals.map((goal, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">
+                              {goal}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
