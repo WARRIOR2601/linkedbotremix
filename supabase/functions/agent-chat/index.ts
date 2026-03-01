@@ -1163,6 +1163,16 @@ What would you like to create today?`;
         break;
       }
 
+      case "check_linkedin": {
+        const isConnected = userContext?.context?.linkedinConnected === true;
+        if (isConnected) {
+          response = "✅ **Your LinkedIn is connected!** You're all set to create, schedule, and publish posts.\n\nWhat would you like to create?";
+        } else {
+          response = "❌ **LinkedIn is NOT connected.**\n\nYou need to connect your LinkedIn account before I can post or schedule anything.\n\n👉 Go to the **LinkedIn** page from the sidebar to connect your account.\n\nOnce connected, come back and we'll get started!";
+        }
+        break;
+      }
+
       case "cancel": {
         response = "No problem! Let me know when you'd like to create a LinkedIn post. Just say 'write a post about [topic]' when you're ready. 👍";
         break;
