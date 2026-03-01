@@ -497,6 +497,16 @@ const AdminPage = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
+                      {storageData[user.user_id] ? (
+                        <div className="flex flex-col text-sm">
+                          <span>{formatBytes(storageData[user.user_id].totalBytes)}</span>
+                          <span className="text-xs text-muted-foreground">{storageData[user.user_id].fileCount} files</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">0 B</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
                       {user.followers_count || 0}
                     </TableCell>
                     <TableCell>
