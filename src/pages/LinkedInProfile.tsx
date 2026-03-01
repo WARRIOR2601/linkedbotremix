@@ -27,14 +27,19 @@ const LinkedInProfile = () => {
       const savedData = profile.linkedin_profile_data;
       if (savedData) {
         setProfileData(savedData);
+      } else if (profile.linkedin_profile_url || profile.linkedin_username || profile.name) {
+        // Build profile data from existing user_profiles fields
+        setProfileData({
+          fullName: profile.name || undefined,
+          username: profile.linkedin_username || undefined,
+          profileUrl: profile.linkedin_profile_url || undefined,
+        });
       }
       if (profile.profile_last_scraped) {
         setLastSynced(new Date(profile.profile_last_scraped));
       }
     }
   }, [profile]);
-
-  const isScrapingImplemented = false;
 
   const handleRefresh = async () => {
     if (!isScrapingImplemented) return;
