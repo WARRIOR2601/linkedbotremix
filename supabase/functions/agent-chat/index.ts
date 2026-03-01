@@ -929,8 +929,12 @@ function detectIntent(message: string, uploadedImages?: string[]): { type: strin
     }
   }
 
+  // Check LinkedIn connection status question
+  if (/linkedin.*(connect|link|status|setup)/i.test(lower) || /connect.*linkedin/i.test(lower) || /is.*linkedin/i.test(lower)) {
+    return { type: "check_linkedin" };
+  }
+
   // Multi-post request (needs confirmation first)
-  const multiPostPatterns = [
     /create\s+posts?\s+for\s+(?:the\s+)?(?:next\s+)?\d+\s*days?/i,
     /generate\s+\d+\s*posts?/i,
     /(?:a\s+)?week(?:'s)?\s+(?:worth\s+)?(?:of\s+)?content/i,
@@ -1159,6 +1163,16 @@ What would you like to create today?`;
         break;
       }
 
+      case "check_linkedin": {
+        const isConnected = userContext?.context?.linkedinConnected === true;
+        if (isConnected) {
+          response = "✅ **Your LinkedIn is connected!** You're all set to create, schedule, and publish posts.\n\nWhat would you like to create?";
+        } else {
+          response = "❌ **LinkedIn is NOT connected.**\n\nYou need to connect your LinkedIn account before I can post or schedule anything.\n\n👉 Go to the **LinkedIn** page from the sidebar to connect your account.\n\nOnce connected, come back and we'll get started!";
+        }
+        break;
+      }
+
       case "cancel": {
         response = "No problem! Let me know when you'd like to create a LinkedIn post. Just say 'write a post about [topic]' when you're ready. 👍";
         break;
@@ -1313,6 +1327,13 @@ Or would you prefer different topics/timing?`;
           console.log("📋 First post content preview:", generatedPosts[0]?.content?.substring(0, 100));
         }
         
+        // Check LinkedIn connection
+        const isLinkedInConnectedPostNow = userContext?.context?.linkedinConnected === true;
+        if (!isLinkedInConnectedPostNow) {
+          response = "⚠️ **LinkedIn is not connected!**\n\nYou need to connect your LinkedIn account before I can post or schedule anything.\n\n👉 Go to **LinkedIn** page from the sidebar to connect your account.\n\nOnce connected, come back and I'll post this for you!";
+          break;
+        }
+        
         if (!generatedPosts || generatedPosts.length === 0) {
           response = "I don't have any posts ready to publish. Would you like me to create one first?\n\nJust say 'write a post about [topic]' 📝";
         } else {
@@ -1346,6 +1367,13 @@ Or would you prefer different topics/timing?`;
 
       case "schedule_post":
       case "auto_schedule": {
+        // Check LinkedIn connection
+        const isLinkedInConnectedSchedule = userContext?.context?.linkedinConnected === true;
+        if (!isLinkedInConnectedSchedule) {
+          response = "⚠️ **LinkedIn is not connected!**\n\nYou need to connect your LinkedIn account before I can schedule posts.\n\n👉 Go to **LinkedIn** page from the sidebar to connect your account.\n\nOnce connected, come back and I'll schedule this for you!";
+          break;
+        }
+        
         if (!generatedPosts || generatedPosts.length === 0) {
           response = "I don't have any posts to schedule. Would you like me to create one first?\n\nJust say 'write a post about [topic]' 📝";
         } else {
