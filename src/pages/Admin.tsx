@@ -439,8 +439,10 @@ const AdminPage = () => {
                 <TableHead>Location</TableHead>
                 <TableHead>Plan</TableHead>
                 <TableHead className="text-center">Posts</TableHead>
+                <TableHead className="text-center">Storage</TableHead>
                 <TableHead className="text-center">Followers</TableHead>
                 <TableHead>Joined</TableHead>
+                <TableHead>Actions</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
