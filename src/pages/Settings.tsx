@@ -58,8 +58,12 @@ const SettingsPage = () => {
   const { profile, isLoading, saveProfile } = useDashboardProfile();
   const { isConnected: linkedInConnected } = useLinkedInAPI();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [isAutoVerifying, setIsAutoVerifying] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<{
     status: 'idle' | 'verifying' | 'success' | 'error';
     message: string;
