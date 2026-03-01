@@ -63,6 +63,7 @@ const formatBytes = (bytes: number): string => {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 };
 
+interface AdminUser {
   id: string;
   user_id: string;
   email: string | null;
