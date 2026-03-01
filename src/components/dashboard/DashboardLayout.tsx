@@ -135,7 +135,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background flex overflow-hidden">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -158,7 +158,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               className="flex items-center gap-3 cursor-pointer"
               onClick={() => {
                 if (location.pathname === '/dashboard') {
-                  // Soft refresh - reload the page data
                   window.location.reload();
                 } else {
                   window.location.href = '/dashboard';
@@ -237,7 +236,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
             
-            {/* Logout button outside dropdown to avoid Radix event issues */}
             <button
               type="button"
               onClick={handleLogout}
@@ -251,10 +249,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </aside>
 
       {/* Main content */}
-      <div className="lg:ml-64">
+      <div className="flex-1 flex flex-col lg:ml-64 overflow-hidden">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
-          <div className="flex items-center justify-between px-6 h-16">
+        <header className="flex-shrink-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border">
+          <div className="flex items-center justify-between px-6 h-14">
             <button
               className="lg:hidden p-2 -ml-2"
               onClick={() => setSidebarOpen(true)}
@@ -277,8 +275,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="p-6">{children}</main>
+        {/* Page content - flex-1 with overflow for scrollable pages */}
+        <main className="flex-1 overflow-auto p-6">{children}</main>
       </div>
     </div>
   );
