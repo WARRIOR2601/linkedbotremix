@@ -47,6 +47,7 @@ import {
   Crown,
   AlertCircle,
   Bot,
+  HardDrive,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
@@ -89,6 +90,9 @@ const AdminPage = () => {
   const [countryFilter, setCountryFilter] = useState("all");
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [totalAgents, setTotalAgents] = useState(0);
+  const [storageData, setStorageData] = useState<Record<string, { fileCount: number; totalBytes: number }>>({});
+  const [totalStorage, setTotalStorage] = useState(0);
+  const [totalFiles, setTotalFiles] = useState(0);
 
   // Check if current user is admin
   useEffect(() => {
@@ -130,7 +134,6 @@ const AdminPage = () => {
 
   const fetchAdminData = async () => {
     try {
-      // Fetch users and agents count in parallel
       const [usersRes, agentsRes] = await Promise.all([
         supabase.rpc('get_admin_users_data'),
         supabase.from('agents').select('*', { count: 'exact', head: true }),
@@ -149,6 +152,18 @@ const AdminPage = () => {
       setUsers(usersRes.data || []);
       setFilteredUsers(usersRes.data || []);
       setTotalAgents(agentsRes.count || 0);
+
+      // Fetch storage usage
+      try {
+        const { data: storageRes, error: storageErr } = await supabase.functions.invoke("admin-storage-usage");
+        if (!storageErr && storageRes) {
+          setStorageData(storageRes.perUser || {});
+          setTotalStorage(storageRes.totalBytes || 0);
+          setTotalFiles(storageRes.totalFiles || 0);
+        }
+      } catch {
+        console.log("Storage usage fetch skipped");
+      }
     } catch (err) {
       console.error("Fetch error:", err);
     }
