@@ -57,6 +57,11 @@ interface Payment {
   final_amount: number;
   payment_method: string | null;
   created_at: string;
+  // Joined user info
+  user_name?: string | null;
+  user_email?: string | null;
+  user_phone?: string | null;
+  user_linkedin_id?: string | null;
 }
 
 interface UserWithBilling {
