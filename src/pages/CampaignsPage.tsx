@@ -60,6 +60,9 @@ const CampaignsPage = () => {
             campaignId={previewCampaignId}
             onClose={() => setPreviewCampaignId(null)}
             onApproveAll={() => approveCampaignPosts(previewCampaignId)}
+            onRegenerate={async () => {
+              await generateCampaignPosts(previewCampaignId);
+            }}
           />
         )}
 
@@ -72,6 +75,12 @@ const CampaignsPage = () => {
           onResume={(id) => updateCampaignStatus(id, "active")}
           onDelete={deleteCampaign}
           onActivate={(id) => approveCampaignPosts(id)}
+          onRegenerate={async (id) => {
+            const success = await generateCampaignPosts(id);
+            if (success) {
+              setPreviewCampaignId(id);
+            }
+          }}
         />
       </div>
     </DashboardLayout>

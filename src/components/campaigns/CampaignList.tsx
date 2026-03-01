@@ -11,6 +11,7 @@ import {
   Search,
   Loader2,
   CheckCircle,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -22,6 +23,7 @@ interface CampaignListProps {
   onResume: (id: string) => void;
   onDelete: (id: string) => void;
   onActivate?: (id: string) => void;
+  onRegenerate?: (id: string) => void;
 }
 
 const statusColors: Record<string, string> = {
@@ -33,7 +35,7 @@ const statusColors: Record<string, string> = {
   failed: "bg-destructive/10 text-destructive",
 };
 
-export function CampaignList({ campaigns, isLoading, onPreview, onPause, onResume, onDelete, onActivate }: CampaignListProps) {
+export function CampaignList({ campaigns, isLoading, onPreview, onPause, onResume, onDelete, onActivate, onRegenerate }: CampaignListProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -91,6 +93,12 @@ export function CampaignList({ campaigns, isLoading, onPreview, onPause, onResum
                   <Button size="sm" onClick={() => onActivate(campaign.id)} className="gap-1 gradient-bg text-primary-foreground">
                     <CheckCircle className="w-4 h-4" />
                     Activate
+                  </Button>
+                )}
+                {(campaign.status === "failed" || campaign.status === "generating" || campaign.status === "draft") && onRegenerate && (
+                  <Button size="sm" variant="outline" onClick={() => onRegenerate(campaign.id)} className="gap-1 text-primary border-primary">
+                    <RefreshCw className="w-4 h-4" />
+                    Regenerate
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={() => onPreview(campaign.id)}>

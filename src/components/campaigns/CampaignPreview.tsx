@@ -16,6 +16,7 @@ import {
   FileText,
   Hash,
   Type,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -48,6 +49,7 @@ interface CampaignPreviewProps {
   campaignId: string;
   onClose: () => void;
   onApproveAll: () => void;
+  onRegenerate?: () => void;
 }
 
 function getWordCount(text: string): number {
@@ -59,7 +61,7 @@ function getReadingTime(wordCount: number): string {
   return minutes <= 1 ? "< 1 min read" : `${minutes} min read`;
 }
 
-export function CampaignPreview({ campaignId, onClose, onApproveAll }: CampaignPreviewProps) {
+export function CampaignPreview({ campaignId, onClose, onApproveAll, onRegenerate }: CampaignPreviewProps) {
   const [posts, setPosts] = useState<CampaignPost[]>([]);
   const [campaign, setCampaign] = useState<CampaignDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -206,7 +208,15 @@ export function CampaignPreview({ campaignId, onClose, onApproveAll }: CampaignP
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       ) : posts.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">No posts generated yet.</p>
+        <div className="text-center py-8 space-y-3">
+          <p className="text-muted-foreground">No posts generated yet. The generation may have timed out.</p>
+          {onRegenerate && (
+            <Button onClick={onRegenerate} variant="outline" className="gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Regenerate Posts
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Generated Posts</h3>
