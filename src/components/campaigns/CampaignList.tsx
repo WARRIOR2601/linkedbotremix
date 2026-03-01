@@ -23,6 +23,7 @@ interface CampaignListProps {
   onResume: (id: string) => void;
   onDelete: (id: string) => void;
   onActivate?: (id: string) => void;
+  onRegenerate?: (id: string) => void;
 }
 
 const statusColors: Record<string, string> = {
