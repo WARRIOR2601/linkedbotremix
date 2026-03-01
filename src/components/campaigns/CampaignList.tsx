@@ -95,7 +95,7 @@ export function CampaignList({ campaigns, isLoading, onPreview, onPause, onResum
                     Activate
                   </Button>
                 )}
-                {(campaign.status === "failed" || campaign.status === "generating") && onRegenerate && (
+                {(campaign.status === "failed" || campaign.status === "generating" || campaign.status === "draft") && onRegenerate && (
                   <Button size="sm" variant="outline" onClick={() => onRegenerate(campaign.id)} className="gap-1 text-primary border-primary">
                     <RefreshCw className="w-4 h-4" />
                     Regenerate
