@@ -227,15 +227,19 @@ const LinkedInProfile = () => {
                       </div>
                     )}
                     <div className="flex gap-4 pt-2">
-                      {profileData.followersCount !== undefined && (
+                      {(profileData.followersCount !== undefined || analyticsData?.followers_count != null) && (
                         <div className="text-center">
-                          <p className="text-lg font-semibold">{profileData.followersCount.toLocaleString()}</p>
+                          <p className="text-lg font-semibold">
+                            {(profileData.followersCount ?? analyticsData?.followers_count ?? 0).toLocaleString()}
+                          </p>
                           <p className="text-xs text-muted-foreground">Followers</p>
                         </div>
                       )}
-                      {profileData.connectionsCount !== undefined && (
+                      {(profileData.connectionsCount !== undefined || analyticsData?.connections_count != null) && (
                         <div className="text-center">
-                          <p className="text-lg font-semibold">{profileData.connectionsCount.toLocaleString()}</p>
+                          <p className="text-lg font-semibold">
+                            {(profileData.connectionsCount ?? analyticsData?.connections_count ?? 0).toLocaleString()}
+                          </p>
                           <p className="text-xs text-muted-foreground">Connections</p>
                         </div>
                       )}
