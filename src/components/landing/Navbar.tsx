@@ -1,12 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Bot, Menu, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Check session on mount and listen for auth changes
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const navLinks = [
     { label: "Features", href: "/features" },
@@ -53,14 +70,22 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Desktop CTA */}
+          {/* Desktop CTA — session-aware */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate("/login")}>
-              Log In
-            </Button>
-            <Button variant="gradient" onClick={() => navigate("/signup")}>
-              Get Started
-            </Button>
+            {isLoggedIn ? (
+              <Button variant="gradient" onClick={() => navigate("/dashboard")}>
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => navigate("/login")}>
+                  Log In
+                </Button>
+                <Button variant="gradient" onClick={() => navigate("/signup")}>
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -98,12 +123,20 @@ const Navbar = () => {
             </button>
           ))}
           <div className="flex flex-col gap-2 pt-4 border-t border-border">
-            <Button variant="ghost" onClick={() => navigate("/login")}>
-              Log In
-            </Button>
-            <Button variant="gradient" onClick={() => navigate("/signup")}>
-              Get Started
-            </Button>
+            {isLoggedIn ? (
+              <Button variant="gradient" onClick={() => navigate("/dashboard")}>
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => navigate("/login")}>
+                  Log In
+                </Button>
+                <Button variant="gradient" onClick={() => navigate("/signup")}>
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

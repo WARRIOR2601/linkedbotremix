@@ -1,23 +1,37 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Bot, Sparkles, Calendar, BarChart3, Linkedin } from "lucide-react";
+import { Bot, Sparkles, Calendar, BarChart3, Linkedin, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
 const dashboardPreview = "/images/dashboard-preview.webp";
 
 const Hero = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <section className="relative min-h-[90vh] md:min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
       
-      {/* Floating orbs - CSS animation instead of framer-motion */}
-      <div
-        className="absolute top-20 left-10 md:left-20 w-48 md:w-72 h-48 md:h-72 bg-primary/20 rounded-full blur-3xl animate-float-slow"
-      />
-      <div
-        className="absolute bottom-20 right-10 md:right-20 w-64 md:w-96 h-64 md:h-96 bg-secondary/20 rounded-full blur-3xl animate-float-slow-reverse"
-      />
+      {/* Floating orbs */}
+      <div className="absolute top-20 left-10 md:left-20 w-48 md:w-72 h-48 md:h-72 bg-primary/20 rounded-full blur-3xl animate-float-slow" />
+      <div className="absolute bottom-20 right-10 md:right-20 w-64 md:w-96 h-64 md:h-96 bg-secondary/20 rounded-full blur-3xl animate-float-slow-reverse" />
 
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
@@ -44,25 +58,39 @@ const Hero = () => {
             powered by AI.
           </p>
 
-          {/* CTA buttons */}
+          {/* CTA buttons — session-aware */}
           <div className="animate-fade-up [animation-delay:300ms] flex flex-col sm:flex-row gap-3 justify-center mb-10 md:mb-16 px-4 sm:px-0">
-            <Button 
-              variant="gradient" 
-              size="xl" 
-              onClick={() => navigate("/signup")}
-              className="gap-3"
-            >
-              <Sparkles className="w-5 h-5" />
-              Get Started Free
-            </Button>
-            <Button 
-              variant="outline" 
-              size="xl" 
-              onClick={() => navigate("/login")}
-              className="gap-3"
-            >
-              Log In
-            </Button>
+            {isLoggedIn ? (
+              <Button 
+                variant="gradient" 
+                size="xl" 
+                onClick={() => navigate("/dashboard")}
+                className="gap-3"
+              >
+                <LayoutDashboard className="w-5 h-5" />
+                Go to Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  variant="gradient" 
+                  size="xl" 
+                  onClick={() => navigate("/signup")}
+                  className="gap-3"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  Get Started Free
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="xl" 
+                  onClick={() => navigate("/login")}
+                  className="gap-3"
+                >
+                  Log In
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Feature highlights */}
@@ -87,12 +115,8 @@ const Hero = () => {
         {/* Dashboard preview mockup */}
         <div className="animate-fade-up [animation-delay:500ms] mt-12 md:mt-20 max-w-5xl mx-auto">
           <div className="relative">
-            {/* Glow effect */}
             <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-3xl blur-2xl" />
-            
-            {/* Mock dashboard */}
             <div className="relative bg-card rounded-2xl shadow-2xl border border-border overflow-hidden">
-              {/* Browser bar */}
               <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border">
                 <div className="flex gap-1.5">
                   <div className="w-3 h-3 rounded-full bg-destructive/60" />
@@ -105,8 +129,6 @@ const Hero = () => {
                   </div>
                 </div>
               </div>
-              
-              {/* Dashboard image */}
               <img 
                 src={dashboardPreview} 
                 alt="LinkedBot Dashboard Preview showing analytics, scheduled posts, and engagement metrics"
