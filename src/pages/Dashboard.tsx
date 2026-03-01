@@ -90,7 +90,7 @@ function getPostDisplayStatus(post: DashboardScheduledPost): 'published' | 'post
 const DashboardPage = () => {
   usePageTitle("Dashboard");
   const navigate = useNavigate();
-  const { isConnected } = useLinkedInAPI();
+  const { isConnected, isLoading: apiLoading, getAuthUrl, disconnect } = useLinkedInAPI();
   const { profile, isLoading: profileLoading } = useDashboardProfile();
   
   // Single API call for all dashboard data (4 queries → 1 call)
@@ -281,9 +281,9 @@ const DashboardPage = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        {/* LinkedIn Connection Status */}
+        {/* LinkedIn Connection Status — shares hook with Dashboard */}
         <div className="animate-fade-up">
-          <ExtensionStatus />
+          <ExtensionStatus isConnected={isConnected} isLoading={apiLoading} getAuthUrl={getAuthUrl} disconnect={disconnect} />
         </div>
         
         {/* Header */}
