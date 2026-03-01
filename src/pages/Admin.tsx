@@ -449,7 +449,7 @@ const AdminPage = () => {
             <TableBody>
               {filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     <div className="flex flex-col items-center gap-2">
                       <Users className="w-8 h-8 text-muted-foreground" />
                       <p className="text-muted-foreground">No users found</p>
