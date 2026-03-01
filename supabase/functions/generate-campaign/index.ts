@@ -20,18 +20,6 @@ function parsePostingTime(timeStr: string): { hour: number; minute: number } {
   return { hour: h || 9, minute: m || 0 };
 }
 
-// Writing DNA tone prompts
-const TONE_PROMPTS: Record<string, string> = {
-  professional: `Write in a Professional voice. Authoritative, clear, and formal. No slang, no overly casual language. Demonstrate expertise and credibility.`,
-  storyteller: `Write in a Storytelling Founder voice. Open with a personal memory or timeline. Use "I thought... but then I learned..." pattern. Be vulnerable, warm, reflective. Medium length, no bullet points.`,
-  analyst: `Write in a Data-Driven Analyst voice. Open with a statistic or surprising number. Use percentages, comparisons, trend data. Objective tone, minimal personal opinion. End with "so what does this mean?"`,
-  creator: `Write in a Conversational Creator voice. Short punchy sentences. Talk directly to reader ("You're doing this wrong"). Relatable, slightly provocative, casual. Heavy white space and line breaks.`,
-  motivator: `Write in a Motivational Builder voice. Bold one-liner openers. Use contrast ("X won't save you. Y will."). Inspirational, direct, calls to action. Short posts, maximum impact.`,
-  educator: `Write in an Educational Breakdown voice. Structured with numbered or labeled sections. "Here's how X works: 1. ... 2. ... 3. ..." Authority voice, helpful, informative. End with a forward-looking statement.`,
-  casual: `Write in a Casual, friendly voice. Relaxed tone, like talking to a friend. Use contractions, informal language. Warm and approachable.`,
-  auto: `Write in a professional, engaging LinkedIn voice. Vary between storytelling, data-driven insights, and conversational styles across different posts.`,
-};
-
 const CONTENT_LENGTH_RULES: Record<string, string> = {
   short: "Keep each post between 100-150 words. Be concise and impactful.",
   medium: "Keep each post between 200-300 words. Good balance of depth and readability.",
@@ -44,6 +32,32 @@ const EMOJI_RULES: Record<string, string> = {
   moderate: "Use 3-5 emojis per post to add visual interest.",
   high: "Use emojis liberally throughout the post for engagement and visual appeal.",
 };
+
+// ============================================
+// FETCH UNIFIED CONTEXT via get-agent-context
+// ============================================
+async function fetchUnifiedContext(authHeader: string): Promise<any | null> {
+  try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const response = await fetch(`${supabaseUrl}/functions/v1/get-agent-context`, {
+      method: "GET",
+      headers: {
+        "Authorization": authHeader,
+        "Content-Type": "application/json",
+      },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        console.log("✅ Unified context loaded for campaign");
+        return data;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch unified context:", error);
+  }
+  return null;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -81,15 +95,14 @@ serve(async (req) => {
       });
     }
 
-    // Fetch campaign
-    const { data: campaign, error: campErr } = await supabase
-      .from("campaigns")
-      .select("*")
-      .eq("id", campaignId)
-      .eq("user_id", user.id)
-      .single();
+    // Fetch campaign AND unified context in parallel
+    const [campaignRes, unifiedContext] = await Promise.all([
+      supabase.from("campaigns").select("*").eq("id", campaignId).eq("user_id", user.id).single(),
+      fetchUnifiedContext(authHeader),
+    ]);
 
-    if (campErr || !campaign) {
+    const campaign = campaignRes.data;
+    if (campaignRes.error || !campaign) {
       return new Response(JSON.stringify({ error: "Campaign not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -99,19 +112,11 @@ serve(async (req) => {
     // Update campaign status to generating
     await supabase.from("campaigns").update({ status: "generating" }).eq("id", campaignId);
 
-    // Fetch user profile for personalization
-    const { data: profile } = await supabase
-      .from("user_profiles_safe")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
-
-    // Fetch Writing DNA profile
-    const { data: writingDna } = await supabase
-      .from("user_writing_profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
+    // Extract data from unified context
+    const ctx = unifiedContext?.context || {};
+    const profile = ctx.profile || {};
+    const writingDna = ctx.writingDna || null;
+    const aiInstructions = unifiedContext?.aiInstructions || "";
 
     // Calculate posting dates
     const startDate = new Date(campaign.start_date);
@@ -143,7 +148,7 @@ serve(async (req) => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               api_key: TAVILY_API_KEY,
-              query: `Latest trends and insights about ${campaign.topic} for LinkedIn`,
+              query: `Latest trends and insights about ${campaign.topic} for LinkedIn${profile.industry ? ` in ${profile.industry}` : ""}`,
               search_depth: "basic",
               max_results: 5,
             }),
@@ -158,10 +163,6 @@ serve(async (req) => {
         }
       }
     }
-
-    // Build the tone prompt
-    const toneType = writingDna?.tone_type || campaign.tone_type || "auto";
-    const tonePrompt = TONE_PROMPTS[toneType] || TONE_PROMPTS.auto;
 
     // Content settings from campaign
     const contentLengthRule = CONTENT_LENGTH_RULES[campaign.content_length || "medium"] || CONTENT_LENGTH_RULES.medium;
@@ -179,23 +180,8 @@ serve(async (req) => {
 
     // Footer
     const footerRule = campaign.footer_text
-      ? `\nIMPORTANT: Append this exact footer at the end of every post (after a blank line):\n"${campaign.footer_text}"\nDo NOT modify or paraphrase the footer. Do NOT duplicate it if the content already ends with similar text.`
+      ? `\nIMPORTANT: Append this exact footer at the end of every post (after a blank line):\n"${campaign.footer_text}"\nDo NOT modify or paraphrase the footer.`
       : "";
-
-    // Build DNA context
-    let dnaContext = "";
-    if (writingDna) {
-      dnaContext = `
-USER WRITING DNA:
-- Tone: ${writingDna.tone_type}
-- Avg length: ${writingDna.avg_post_length} words
-- Uses emojis: ${writingDna.uses_emojis} (${writingDna.emoji_frequency})
-- Hook style: ${writingDna.hook_style}
-- Sentence length: ${writingDna.avg_sentence_length}
-- Uses bullet points: ${writingDna.uses_bullet_points}
-- Uses numbered lists: ${writingDna.uses_numbered_lists}
-${writingDna.signature_phrases?.length ? `- Signature phrases: ${writingDna.signature_phrases.join(", ")}` : ""}`;
-    }
 
     // Generate all posts with Lovable AI
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -205,15 +191,14 @@ ${writingDna.signature_phrases?.length ? `- Signature phrases: ${writingDna.sign
 
     const systemPrompt = `You are a LinkedIn content expert generating a campaign of ${postDates.length} posts about "${campaign.topic}".
 
-${tonePrompt}
+${aiInstructions}
 
 USER PROFILE:
-- Name: ${profile?.name || "Professional"}
-- Role: ${profile?.role || "Professional"}
-- Company: ${profile?.company_name || ""}
-- Industry: ${profile?.industry || ""}
-- Location: ${profile?.location || ""}
-${dnaContext}
+- Name: ${profile.name || "Professional"}
+- Role: ${profile.role || "Professional"}
+- Company: ${profile.companyName || ""}
+- Industry: ${profile.industry || ""}
+- Location: ${profile.location || ""}
 ${researchInsights}
 
 CONTENT RULES:
@@ -226,6 +211,13 @@ CONTENT RULES:
 7. Make each post a standalone piece that can be read independently
 8. Number each post clearly as "Post 1:", "Post 2:", etc.
 ${footerRule}
+
+HUMANIZATION RULES:
+- Use contractions: "I'm" not "I am", "don't" not "do not"
+- Be conversational like talking to a smart colleague
+- BANNED: "Let me share", "In conclusion", "Furthermore", "Moreover", "leverage", "synergy", "optimize", "utilize"
+- Mix short and long sentences
+- Start with hooks, not generic intros
 
 Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST_SEPARATOR---"`;
 
@@ -251,18 +243,15 @@ Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST
       if (aiResponse.status === 429) {
         await supabase.from("campaigns").update({ status: "failed" }).eq("id", campaignId);
         return new Response(JSON.stringify({ error: "Rate limited. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (aiResponse.status === 402) {
         await supabase.from("campaigns").update({ status: "failed" }).eq("id", campaignId);
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
       throw new Error(`AI gateway error: ${aiResponse.status}`);
     }
 
@@ -278,17 +267,78 @@ Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST
     if (rawPosts.length === 0) {
       await supabase.from("campaigns").update({ status: "failed" }).eq("id", campaignId);
       return new Response(JSON.stringify({ error: "Failed to generate posts" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Clean post content (remove "Post 1:" prefixes)
+    // Clean post content
     const cleanPosts = rawPosts.map((p: string) =>
       p.replace(/^Post\s*\d+\s*:\s*/i, "").trim()
     );
 
-    // Create posts in database with proper timezone handling
+    // Generate AI images if campaign has image_option = 'ai'
+    let imageUrls: (string | null)[] = new Array(cleanPosts.length).fill(null);
+    if (campaign.image_option === "ai") {
+      console.log("🎨 Generating AI images for campaign posts...");
+      // Generate images in batches of 3 to avoid rate limits
+      for (let i = 0; i < cleanPosts.length; i += 3) {
+        const batch = cleanPosts.slice(i, i + 3);
+        const imagePromises = batch.map(async (content: string, batchIdx: number) => {
+          try {
+            const prompt = generateImagePrompt(content, profile);
+            const imgResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash-image",
+                messages: [{ role: "user", content: prompt }],
+                modalities: ["image", "text"],
+              }),
+            });
+            
+            if (imgResponse.ok) {
+              const imgData = await imgResponse.json();
+              const base64Url = imgData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+              if (base64Url) {
+                // Upload to storage
+                const fileName = `campaign-${campaignId}-post-${i + batchIdx}-${Date.now()}.png`;
+                const base64Data = base64Url.replace(/^data:image\/\w+;base64,/, "");
+                const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+                
+                const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+                const { error: uploadError } = await serviceClient.storage
+                  .from("post-images")
+                  .upload(fileName, binaryData, { contentType: "image/png", upsert: true });
+                
+                if (!uploadError) {
+                  const { data: publicUrl } = serviceClient.storage.from("post-images").getPublicUrl(fileName);
+                  return publicUrl.publicUrl;
+                }
+              }
+            }
+          } catch (imgErr) {
+            console.error(`Image generation failed for post ${i + batchIdx}:`, imgErr);
+          }
+          return null;
+        });
+        
+        const results = await Promise.all(imagePromises);
+        results.forEach((url, batchIdx) => {
+          imageUrls[i + batchIdx] = url;
+        });
+        
+        // Small delay between batches to avoid rate limits
+        if (i + 3 < cleanPosts.length) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+      console.log(`✅ Generated ${imageUrls.filter(u => u).length}/${cleanPosts.length} images`);
+    }
+
+    // Create posts in database
     const postsToInsert = cleanPosts.slice(0, postDates.length).map((content: string, i: number) => {
       const postDate = postDates[i];
       
@@ -296,15 +346,12 @@ Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST
       if (campaign.auto_best_time) {
         ({ hour, minute } = pickBestTime(i));
       } else {
-        // Use user's selected posting time (in IST)
         ({ hour, minute } = parsePostingTime(campaign.posting_time || "09:00"));
       }
 
-      // Create scheduled time: postDate at hour:minute IST → UTC
-      // IST is UTC+5:30 (330 minutes). Convert by subtracting offset in ms.
       const scheduledTime = new Date(postDate);
-      scheduledTime.setUTCHours(0, 0, 0, 0); // Reset to midnight UTC
-      const istOffsetMs = 5.5 * 60 * 60 * 1000; // 5h30m in milliseconds
+      scheduledTime.setUTCHours(0, 0, 0, 0);
+      const istOffsetMs = 5.5 * 60 * 60 * 1000;
       const timeOfDayMs = (hour * 60 + minute) * 60 * 1000;
       const finalMs = scheduledTime.getTime() + timeOfDayMs - istOffsetMs;
       const finalScheduledTime = new Date(finalMs);
@@ -315,6 +362,7 @@ Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST
         user_id: user.id,
         campaign_id: campaignId,
         content,
+        photo_url: imageUrls[i] || null,
         scheduled_time: finalScheduledTime.toISOString(),
         status: campaign.auto_approve ? "pending" : "draft",
         retry_count: 0,
@@ -341,6 +389,7 @@ Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST
     return new Response(JSON.stringify({
       success: true,
       postsGenerated: createdPosts?.length || postsToInsert.length,
+      imagesGenerated: imageUrls.filter(u => u).length,
       campaignId,
     }), {
       status: 200,
@@ -357,3 +406,20 @@ Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST
     });
   }
 });
+
+function generateImagePrompt(content: string, profile: any): string {
+  const firstLine = content.split('\n').filter((l: string) => l.trim())[0]?.trim() || 'Professional content';
+  const clean = firstLine.replace(/[\u{1F300}-\u{1F9FF}]/gu, '').replace(/[^\w\s.,!?-]/g, '').trim().substring(0, 120);
+  
+  const themes: string[] = [];
+  const lower = content.toLowerCase();
+  if (lower.includes('ai') || lower.includes('artificial intelligence')) themes.push('AI technology');
+  if (lower.includes('leader')) themes.push('leadership');
+  if (lower.includes('tech') || lower.includes('software')) themes.push('technology');
+  if (lower.includes('data') || lower.includes('analytics')) themes.push('data visualization');
+  if (lower.includes('team') || lower.includes('collaboration')) themes.push('teamwork');
+  if (profile?.industry) themes.push(profile.industry);
+  
+  const themeStr = themes.length > 0 ? themes.join(', ') : 'professional business';
+  return `Professional LinkedIn post image: ${clean}, ${themeStr}, modern clean design, high quality, no text overlay`;
+}
