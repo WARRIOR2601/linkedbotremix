@@ -60,7 +60,7 @@ function getReadingTime(wordCount: number): string {
   return minutes <= 1 ? "< 1 min read" : `${minutes} min read`;
 }
 
-export function CampaignPreview({ campaignId, onClose, onApproveAll }: CampaignPreviewProps) {
+export function CampaignPreview({ campaignId, onClose, onApproveAll, onRegenerate }: CampaignPreviewProps) {
   const [posts, setPosts] = useState<CampaignPost[]>([]);
   const [campaign, setCampaign] = useState<CampaignDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
