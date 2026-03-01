@@ -355,7 +355,10 @@ const AdminPaymentsPage = () => {
     const matchesSearch = 
       payment.razorpay_order_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       payment.razorpay_payment_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      payment.coupon_code?.toLowerCase().includes(searchQuery.toLowerCase());
+      payment.coupon_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      payment.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      payment.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      payment.user_phone?.toLowerCase().includes(searchQuery.toLowerCase());
     
     return matchesSearch;
   });
@@ -584,6 +587,7 @@ const AdminPaymentsPage = () => {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Date</TableHead>
+                          <TableHead>User</TableHead>
                           <TableHead>Order ID</TableHead>
                           <TableHead>Plan</TableHead>
                           <TableHead>Amount</TableHead>
@@ -598,6 +602,20 @@ const AdminPaymentsPage = () => {
                           <TableRow key={payment.id}>
                             <TableCell className="text-sm">
                               {format(new Date(payment.created_at), "MMM d, yyyy h:mm a")}
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-0.5">
+                                <p className="font-medium text-sm">{payment.user_name || 'Unknown'}</p>
+                                <p className="text-xs text-muted-foreground">{payment.user_email || '-'}</p>
+                                {payment.user_phone && (
+                                  <p className="text-xs text-muted-foreground">📱 {payment.user_phone}</p>
+                                )}
+                                {payment.user_linkedin_id && (
+                                  <p className="text-xs text-muted-foreground truncate max-w-[120px]" title={payment.user_linkedin_id}>
+                                    🔗 {payment.user_linkedin_id}
+                                  </p>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <code className="text-xs bg-muted px-2 py-1 rounded">
