@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { RefreshCw, MapPin, Briefcase, User, Clock, AlertCircle, ExternalLink, Linkedin } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { RefreshCw, MapPin, Briefcase, User, Clock, AlertCircle, ExternalLink, Linkedin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +9,7 @@ import { useLinkedBotExtension } from "@/hooks/useLinkedBotExtension";
 import { useDashboardProfile } from "@/contexts/DashboardContext";
 import type { LinkedInProfileData } from "@/hooks/useUserProfile";
 import { useProfileSync } from "@/hooks/useProfileSync";
+import { supabase } from "@/integrations/supabase/client";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
@@ -21,6 +21,34 @@ const LinkedInProfile = () => {
   
   const [profileData, setProfileData] = useState<LinkedInProfileData | null>(null);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<{
+    followers_count: number | null;
+    connections_count: number | null;
+    username: string | null;
+    profile_url: string | null;
+    last_synced: string | null;
+  } | null>(null);
+
+  // Fetch linkedin_analytics data for followers/connections
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('linkedin_analytics')
+        .select('followers_count, connections_count, username, profile_url, last_synced')
+        .eq('user_id', user.id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data) {
+        setAnalyticsData(data);
+      }
+    };
+    fetchAnalytics();
+  }, []);
 
   useEffect(() => {
     if (profile) {
@@ -28,11 +56,11 @@ const LinkedInProfile = () => {
       if (savedData) {
         setProfileData(savedData);
       } else if (profile.linkedin_profile_url || profile.linkedin_username || profile.name) {
-        // Build profile data from existing user_profiles fields
         setProfileData({
           fullName: profile.name || undefined,
           username: profile.linkedin_username || undefined,
           profileUrl: profile.linkedin_profile_url || undefined,
+          location: profile.location || profile.city || undefined,
         });
       }
       if (profile.profile_last_scraped) {
@@ -199,15 +227,19 @@ const LinkedInProfile = () => {
                       </div>
                     )}
                     <div className="flex gap-4 pt-2">
-                      {profileData.followersCount !== undefined && (
+                      {(profileData.followersCount !== undefined || analyticsData?.followers_count != null) && (
                         <div className="text-center">
-                          <p className="text-lg font-semibold">{profileData.followersCount.toLocaleString()}</p>
+                          <p className="text-lg font-semibold">
+                            {(profileData.followersCount ?? analyticsData?.followers_count ?? 0).toLocaleString()}
+                          </p>
                           <p className="text-xs text-muted-foreground">Followers</p>
                         </div>
                       )}
-                      {profileData.connectionsCount !== undefined && (
+                      {(profileData.connectionsCount !== undefined || analyticsData?.connections_count != null) && (
                         <div className="text-center">
-                          <p className="text-lg font-semibold">{profileData.connectionsCount.toLocaleString()}</p>
+                          <p className="text-lg font-semibold">
+                            {(profileData.connectionsCount ?? analyticsData?.connections_count ?? 0).toLocaleString()}
+                          </p>
                           <p className="text-xs text-muted-foreground">Connections</p>
                         </div>
                       )}
