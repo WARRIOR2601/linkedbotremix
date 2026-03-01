@@ -214,10 +214,10 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   </Avatar>
                   <div className="flex-1 text-left">
                     <p className="text-sm font-medium">
-                      {isLoading ? "Loading..." : (profile?.name || "User")}
+                      {isLoading ? "Loading..." : (profile?.name || profile?.email || "User")}
                     </p>
                     <p className="text-xs text-sidebar-foreground/60">
-                      {getPlanName(profile?.subscription_plan)}
+                      {isLoading ? "..." : getPlanName(profile?.subscription_plan)}
                     </p>
                   </div>
                   <ChevronDown className="w-4 h-4 text-sidebar-foreground/60" />
