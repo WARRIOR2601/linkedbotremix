@@ -265,6 +265,10 @@ function buildAgentSystemPrompt(agentType: string, userContext?: any, agentSetti
   const analytics = userContext?.context?.analytics || userContext?.agentContext?.analytics;
   if (analytics?.followersCount) userIdentity += `- LinkedIn Followers: ${analytics.followersCount}\n`;
   
+  // LinkedIn connection status - CRITICAL for accurate responses
+  const linkedinConnected = userContext?.context?.linkedinConnected === true;
+  userIdentity += `- LinkedIn Connected: ${linkedinConnected ? 'YES ✅ (API connected, posts will publish automatically)' : 'NO ❌ (NOT connected — user MUST connect before any posting/scheduling)'}\n`;
+  
   // Build example topics for this user + agent type
   const exampleTopics = config.exampleTopics(profile);
   
