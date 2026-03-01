@@ -24,6 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   User,
   Linkedin,
   Building2,
@@ -38,10 +46,12 @@ import {
   AlertCircle,
   CheckCircle2,
   Wifi,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useLinkedInAPI } from "@/hooks/useLinkedInAPI";
+import { useNavigate } from "react-router-dom";
 
 const SettingsPage = () => {
   usePageTitle("Settings");
