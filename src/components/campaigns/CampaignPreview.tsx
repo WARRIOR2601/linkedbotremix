@@ -48,6 +48,7 @@ interface CampaignPreviewProps {
   campaignId: string;
   onClose: () => void;
   onApproveAll: () => void;
+  onRegenerate?: () => void;
 }
 
 function getWordCount(text: string): number {
