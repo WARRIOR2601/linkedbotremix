@@ -54,6 +54,52 @@ const WritingDNAPage = () => {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast.error("File too large. Maximum 10MB allowed.");
+      return;
+    }
+
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/png", "image/webp", "text/plain"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Unsupported file type. Use PDF, JPG, PNG, WebP, or TXT.");
+      return;
+    }
+
+    setIsExtracting(true);
+    setExtractedData(null);
+
+    try {
+      // Read file as base64
+      const buffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const base64 = btoa(binary);
+
+      const { data, error } = await supabase.functions.invoke("extract-document", {
+        body: { fileData: base64, fileType: file.type, fileName: file.name },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setExtractedData(data.extracted);
+      toast.success("Document extracted and saved as reference material!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to extract document");
+    } finally {
+      setIsExtracting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const toneIcons: Record<string, React.ReactNode> = {
     storyteller: <MessageSquare className="w-5 h-5" />,
     analyst: <BarChart3 className="w-5 h-5" />,
