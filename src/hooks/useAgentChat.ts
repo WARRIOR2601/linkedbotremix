@@ -465,7 +465,9 @@ export function useAgentChat(
       
       // Provide user-friendly error message
       let userMessage = "Please try again.";
-      if (error.message?.includes("Failed to send a request") || error.message?.includes("FunctionsHttpError")) {
+      if (error.message?.includes("timed out")) {
+        userMessage = "Request timed out. Please try again.";
+      } else if (error.message?.includes("Failed to send a request") || error.message?.includes("FunctionsHttpError")) {
         userMessage = "Server is temporarily unavailable. Please try again in a moment.";
       } else if (error.message?.includes("network") || error.message?.includes("fetch")) {
         userMessage = "Network error. Please check your connection and try again.";
