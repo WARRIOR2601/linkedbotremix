@@ -6,6 +6,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -21,7 +31,6 @@ serve(async (req) => {
 
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    // Find active campaigns with research_mode enabled that have pending posts for today
     const today = new Date().toISOString().split("T")[0];
 
     const { data: campaigns, error: campErr } = await supabase
@@ -43,7 +52,6 @@ serve(async (req) => {
 
     for (const campaign of campaigns) {
       try {
-        // Check if a post already exists for today in this campaign
         const { data: existingPosts } = await supabase
           .from("posts")
           .select("id")
@@ -56,42 +64,65 @@ serve(async (req) => {
           continue;
         }
 
-        // Fetch user profile
         const { data: profile } = await supabase
           .from("user_profiles")
           .select("name, role, company_name, industry")
           .eq("user_id", campaign.user_id)
           .single();
 
-        // Fetch Writing DNA
         const { data: writingDna } = await supabase
           .from("user_writing_profiles")
           .select("*")
           .eq("user_id", campaign.user_id)
           .single();
 
-        // Step 1: Research
+        // Research with cache
         let researchInsights = "";
         if (TAVILY_API_KEY) {
-          try {
-            const res = await fetch("https://api.tavily.com/search", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                api_key: TAVILY_API_KEY,
-                query: `Latest news and insights about ${campaign.topic} today ${today}`,
-                search_depth: "basic",
-                max_results: 3,
-              }),
-            });
-            const data = await res.json();
-            if (data.results?.length > 0) {
-              researchInsights = data.results
-                .map((r: any) => `Source: ${r.title}\nInsight: ${r.content?.substring(0, 300)}`)
-                .join("\n\n");
+          const query = `Latest news and insights about ${campaign.topic} today ${today}`;
+          const queryHash = simpleHash(query.toLowerCase().trim());
+
+          // Check cache first
+          const { data: cached } = await supabase
+            .from("research_cache")
+            .select("insights")
+            .eq("query_hash", queryHash)
+            .gt("expires_at", new Date().toISOString())
+            .limit(1)
+            .maybeSingle();
+
+          if (cached) {
+            console.log(`✅ Research cache HIT for campaign ${campaign.id}`);
+            researchInsights = cached.insights;
+          } else {
+            try {
+              const res = await fetch("https://api.tavily.com/search", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  api_key: TAVILY_API_KEY,
+                  query,
+                  search_depth: "basic",
+                  max_results: 3,
+                }),
+              });
+              const data = await res.json();
+              if (data.results?.length > 0) {
+                researchInsights = data.results
+                  .map((r: any) => `Source: ${r.title}\nInsight: ${r.content?.substring(0, 300)}`)
+                  .join("\n\n");
+
+                // Cache the result
+                await supabase.from("research_cache").insert({
+                  query_hash: queryHash,
+                  query_text: query.substring(0, 500),
+                  insights: researchInsights,
+                  source_count: data.results.length,
+                }).catch(() => {});
+              }
+            } catch (e) {
+              console.error(`Research failed for campaign ${campaign.id}:`, e);
             }
-          } catch (e) {
-            console.error(`Research failed for campaign ${campaign.id}:`, e);
           }
         }
 
