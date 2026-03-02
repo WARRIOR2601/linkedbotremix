@@ -265,18 +265,8 @@ const DashboardPage = () => {
     },
   ];
 
-  // Show dashboard immediately — only block on profile (comes from context, already loaded)
-  const isLoading = profileLoading;
-
-  if (isLoading) {
-    return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </DashboardLayout>
-    );
-  }
+  // Never block the full page — show skeleton loaders for data sections instead
+  const showSkeletons = profileLoading || dataLoading;
 
   return (
     <DashboardLayout>
