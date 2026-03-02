@@ -323,7 +323,13 @@ const DashboardPage = () => {
           <div className="p-6 border-b border-border">
             <h2 className="text-xl font-semibold">Upcoming Scheduled Posts</h2>
           </div>
-          {scheduledPosts.length === 0 ? (
+          {showSkeletons ? (
+            <div className="p-6 space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 rounded-lg" />
+              ))}
+            </div>
+          ) : scheduledPosts.length === 0 ? (
             <div className="p-12 text-center">
               <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-4">No scheduled posts yet</p>
