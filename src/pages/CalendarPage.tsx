@@ -52,9 +52,7 @@ const CalendarPage = () => {
   const { posts, isLoading: postsLoading, deletePost, fetchScheduledPosts } = usePosts();
   const { agents, isLoading: agentsLoading } = useAgents();
 
-  useEffect(() => {
-    fetchScheduledPosts();
-  }, [fetchScheduledPosts]);
+  // Removed redundant fetchScheduledPosts — usePosts already fetches on mount
 
   const getPostsForDate = (date: Date) => {
     return posts.filter((post) => {

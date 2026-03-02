@@ -46,8 +46,8 @@ export const usePosts = () => {
       setIsLoading(true);
       setError(null);
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         setPosts([]);
         return;
       }
@@ -55,7 +55,7 @@ export const usePosts = () => {
       let query = supabase
         .from("posts")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .order("scheduled_time", { ascending: true, nullsFirst: false });
 
       if (filters?.status) {
@@ -81,8 +81,9 @@ export const usePosts = () => {
   // Set up realtime subscription for post status updates
   useEffect(() => {
     const setupRealtimeSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const user = session.user;
 
       const channel = supabase
         .channel('posts-status-changes')
@@ -130,18 +131,8 @@ export const usePosts = () => {
     setupRealtimeSubscription();
   }, [toast]);
 
-  // Refetch on window focus only (realtime handles live updates)
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchPosts();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [fetchPosts]);
+  // Window focus refetch removed — realtime subscription handles live updates
+  // This eliminates a redundant SELECT * on every tab focus
 
   const fetchScheduledPosts = useCallback(async () => {
     return fetchPosts();
@@ -159,8 +150,8 @@ export const usePosts = () => {
 
   const createPost = useCallback(async (postData: CreatePostData): Promise<Post | null> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         toast({
           title: "Not authenticated",
           description: "Please log in to create a post.",
@@ -172,7 +163,7 @@ export const usePosts = () => {
       const { data, error: createError } = await supabase
         .from("posts")
         .insert({
-          user_id: user.id,
+          user_id: session.user.id,
           content: postData.content,
           photo_url: postData.photo_url,
           status: postData.status || "draft",
@@ -201,8 +192,8 @@ export const usePosts = () => {
 
   const updatePost = useCallback(async (postId: string, updates: Partial<Post>): Promise<boolean> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
 
       const { error: updateError } = await supabase
         .from("posts")
@@ -211,7 +202,7 @@ export const usePosts = () => {
           updated_at: new Date().toISOString(),
         })
         .eq("id", postId)
-        .eq("user_id", user.id);
+        .eq("user_id", session.user.id);
 
       if (updateError) throw updateError;
 
@@ -237,14 +228,14 @@ export const usePosts = () => {
 
   const deletePost = useCallback(async (postId: string): Promise<boolean> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
 
       const { error: deleteError } = await supabase
         .from("posts")
         .delete()
         .eq("id", postId)
-        .eq("user_id", user.id);
+        .eq("user_id", session.user.id);
 
       if (deleteError) throw deleteError;
 

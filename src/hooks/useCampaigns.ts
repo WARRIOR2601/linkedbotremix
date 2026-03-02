@@ -52,13 +52,13 @@ export function useCampaigns() {
 
   const fetchCampaigns = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
       const { data, error } = await supabase
         .from("campaigns")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -72,8 +72,8 @@ export function useCampaigns() {
 
   const createCampaign = useCallback(async (formData: CampaignFormData) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
 
       const startDate = formData.startDate;
       let endDate: Date;
@@ -97,7 +97,7 @@ export function useCampaigns() {
       const { data, error } = await supabase
         .from("campaigns")
         .insert({
-          user_id: user.id,
+          user_id: session.user.id,
           topic: formData.topic,
           tone_type: formData.toneType,
           duration_type: formData.durationType,
@@ -205,18 +205,8 @@ export function useCampaigns() {
     fetchCampaigns();
   }, [fetchCampaigns]);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel("campaigns-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "campaigns" }, () => {
-        fetchCampaigns();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchCampaigns]);
+  // Realtime subscription removed — it was unfiltered (triggered on ALL users' campaign changes)
+  // and caused unnecessary refetches. Campaign data is fetched on mount and after mutations.
 
   return {
     campaigns,
