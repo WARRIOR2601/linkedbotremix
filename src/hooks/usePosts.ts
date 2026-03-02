@@ -150,8 +150,8 @@ export const usePosts = () => {
 
   const createPost = useCallback(async (postData: CreatePostData): Promise<Post | null> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         toast({
           title: "Not authenticated",
           description: "Please log in to create a post.",
@@ -163,7 +163,7 @@ export const usePosts = () => {
       const { data, error: createError } = await supabase
         .from("posts")
         .insert({
-          user_id: user.id,
+          user_id: session.user.id,
           content: postData.content,
           photo_url: postData.photo_url,
           status: postData.status || "draft",
@@ -192,8 +192,8 @@ export const usePosts = () => {
 
   const updatePost = useCallback(async (postId: string, updates: Partial<Post>): Promise<boolean> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
 
       const { error: updateError } = await supabase
         .from("posts")
@@ -202,7 +202,7 @@ export const usePosts = () => {
           updated_at: new Date().toISOString(),
         })
         .eq("id", postId)
-        .eq("user_id", user.id);
+        .eq("user_id", session.user.id);
 
       if (updateError) throw updateError;
 
@@ -228,14 +228,14 @@ export const usePosts = () => {
 
   const deletePost = useCallback(async (postId: string): Promise<boolean> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return false;
 
       const { error: deleteError } = await supabase
         .from("posts")
         .delete()
         .eq("id", postId)
-        .eq("user_id", user.id);
+        .eq("user_id", session.user.id);
 
       if (deleteError) throw deleteError;
 
