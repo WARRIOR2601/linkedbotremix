@@ -325,32 +325,72 @@ export function useAgentChat(
     setIsLoading(true);
 
     try {
+      const requestBody = {
+        message,
+        history: [...messages, userMessage].slice(-10).map(m => ({
+          role: m.role,
+          content: m.content,
+        })),
+        agentSettings,
+        userContext,
+        generatedPosts,
+        generateImage: options?.generateImage ?? false,
+        uploadedImages: options?.uploadedImages ?? [],
+      };
+
       // CRITICAL: Log what we're sending to edge function
       console.log("🚀 Sending to edge function:", {
         message,
         generatedPostsCount: generatedPosts.length,
         generatedPosts: generatedPosts.map(p => ({ id: p.id, content: p.content?.substring(0, 50) })),
       });
-      
-      const { data, error } = await supabase.functions.invoke("agent-chat", {
-        body: {
-          message,
-          history: [...messages, userMessage].slice(-10).map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
-          agentSettings,
-          userContext,
-          generatedPosts,
-          generateImage: options?.generateImage ?? false,
-          uploadedImages: options?.uploadedImages ?? [],
-        },
-      });
+
+      const invokeAgentChatWithTimeout = async (attempt = 1): Promise<{ data: any; error: any }> => {
+        const timeoutMs = 25000;
+        let timeoutId: number | undefined;
+
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = window.setTimeout(() => {
+            reject(new Error("Agent request timed out. Please try again."));
+          }, timeoutMs);
+        });
+
+        try {
+          const result = await Promise.race([
+            supabase.functions.invoke("agent-chat", { body: requestBody }),
+            timeoutPromise,
+          ]);
+          return result as { data: any; error: any };
+        } catch (err: any) {
+          const msg = String(err?.message || "").toLowerCase();
+          const isRetryable =
+            attempt === 1 &&
+            (msg.includes("timed out") ||
+              msg.includes("failed to send a request") ||
+              msg.includes("functionshttperror") ||
+              msg.includes("network") ||
+              msg.includes("fetch"));
+
+          if (isRetryable) {
+            console.warn("Retrying agent-chat request after transient failure...");
+            await new Promise(resolve => window.setTimeout(resolve, 800));
+            return invokeAgentChatWithTimeout(2);
+          }
+
+          throw err;
+        } finally {
+          if (timeoutId !== undefined) {
+            window.clearTimeout(timeoutId);
+          }
+        }
+      };
+
+      const { data, error } = await invokeAgentChatWithTimeout();
 
       console.log("Agent response:", data);
 
       if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (data?.error) throw new Error(data.error);
 
       const assistantMessage: ChatMessage = {
         role: "assistant",
@@ -425,7 +465,9 @@ export function useAgentChat(
       
       // Provide user-friendly error message
       let userMessage = "Please try again.";
-      if (error.message?.includes("Failed to send a request") || error.message?.includes("FunctionsHttpError")) {
+      if (error.message?.includes("timed out")) {
+        userMessage = "Request timed out. Please try again.";
+      } else if (error.message?.includes("Failed to send a request") || error.message?.includes("FunctionsHttpError")) {
         userMessage = "Server is temporarily unavailable. Please try again in a moment.";
       } else if (error.message?.includes("network") || error.message?.includes("fetch")) {
         userMessage = "Network error. Please check your connection and try again.";
