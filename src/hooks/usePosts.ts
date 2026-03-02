@@ -130,18 +130,8 @@ export const usePosts = () => {
     setupRealtimeSubscription();
   }, [toast]);
 
-  // Refetch on window focus only (realtime handles live updates)
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchPosts();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [fetchPosts]);
+  // Window focus refetch removed — realtime subscription handles live updates
+  // This eliminates a redundant SELECT * on every tab focus
 
   const fetchScheduledPosts = useCallback(async () => {
     return fetchPosts();

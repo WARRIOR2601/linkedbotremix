@@ -56,16 +56,17 @@ export const useSubscription = () => {
     try {
       setIsLoading(true);
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
         setStatus(null);
         return;
       }
+      const user = session.user;
 
       // Get user profile with subscription info
       const { data: profile } = await supabase
         .from("user_profiles_safe")
-        .select("subscription_plan, subscription_expires_at, posts_created_count, posts_scheduled_count, posts_published_count")
+        .select("subscription_plan, subscription_expires_at")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -90,8 +91,11 @@ export const useSubscription = () => {
         .eq("status", "posted")
         .gte("posted_at", monthStart.toISOString());
 
-      // Count agents (mock - you'd have an agents table)
-      const agentsCount = 2; // Placeholder
+      // Count actual agents
+      const { count: agentsCount } = await supabase
+        .from("agents")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id);
 
       // Determine plan
       let plan: "free" | "pro" | "business" = "free";

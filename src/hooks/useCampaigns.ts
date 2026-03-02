@@ -205,18 +205,8 @@ export function useCampaigns() {
     fetchCampaigns();
   }, [fetchCampaigns]);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel("campaigns-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "campaigns" }, () => {
-        fetchCampaigns();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchCampaigns]);
+  // Realtime subscription removed — it was unfiltered (triggered on ALL users' campaign changes)
+  // and caused unnecessary refetches. Campaign data is fetched on mount and after mutations.
 
   return {
     campaigns,

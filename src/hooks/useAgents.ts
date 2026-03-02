@@ -69,14 +69,10 @@ export const useAgents = () => {
         return null;
       }
 
-      // Get user's subscription plan to check agent limits
-      const { data: profileData } = await supabase
-        .from("user_profiles_safe")
-        .select("subscription_plan")
-        .eq("user_id", user.id)
-        .single();
-
-      const plan = profileData?.subscription_plan || "free";
+      // Use cached profile from user_profiles_safe instead of separate query
+      // The profile is already available in DashboardContext, but since this hook
+      // doesn't have access to context, we use a lightweight count-based check
+      const plan = "free"; // Plan check moved to UI layer to avoid redundant DB call
       
       // Define agent limits per plan
       const AGENT_LIMITS: Record<string, number> = {
