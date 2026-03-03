@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Bot, Menu, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NavbarProps {
-  isLoggedIn: boolean;
+  isLoggedIn?: boolean;
 }
 
 const Navbar = ({ isLoggedIn }: NavbarProps) => {
