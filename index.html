@@ -4,13 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G4F2D83P2Y"></script>
+    <!-- Google tag (gtag.js) - deferred to not block rendering -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-G4F2D83P2Y');
+      // Defer GA loading until after page load
+      window.addEventListener('load', function() {
+        var s = document.createElement('script');
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-G4F2D83P2Y';
+        s.async = true;
+        document.head.appendChild(s);
+        s.onload = function() {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', 'G-G4F2D83P2Y');
+        };
+      });
     </script>
     
     <title>LinkedBot - AI LinkedIn Automation</title>
@@ -21,11 +30,10 @@
     <link rel="dns-prefetch" href="https://suznvphdiuyqxsduycty.supabase.co" />
     <link rel="preconnect" href="https://suznvphdiuyqxsduycty.supabase.co" crossorigin />
 
-    <!-- Google Fonts - preload critical font files -->
+    <!-- Google Fonts - optimized loading with font-display:swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hjQ.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
 
     <!-- Preload hero image (LCP element) -->
     <link rel="preload" href="/images/dashboard-preview.webp" as="image" type="image/webp" />

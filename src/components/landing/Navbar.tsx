@@ -4,26 +4,33 @@ import { Bot, Menu, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
-const Navbar = () => {
+interface NavbarProps {
+  isLoggedIn?: boolean;
+}
+
+const Navbar = ({ isLoggedIn: isLoggedInProp }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authChecked, setAuthChecked] = useState(isLoggedInProp !== undefined);
+  const [localLoggedIn, setLocalLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check session on mount and listen for auth changes
+  // Only run auth check if prop not provided (standalone usage)
   useEffect(() => {
+    if (isLoggedInProp !== undefined) return;
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
+      setLocalLoggedIn(!!session);
+      setAuthChecked(true);
     };
     checkSession();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
+      setLocalLoggedIn(!!session);
     });
-
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isLoggedInProp]);
+
+  const isLoggedIn = isLoggedInProp !== undefined ? isLoggedInProp : localLoggedIn;
 
   const navLinks = [
     { label: "Features", href: "/features" },
@@ -102,7 +109,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu - CSS transition instead of framer-motion */}
+      {/* Mobile menu */}
       <div
         className={`md:hidden bg-background border-b border-border overflow-hidden transition-all duration-300 ease-in-out ${
           mobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"

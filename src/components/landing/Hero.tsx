@@ -1,37 +1,24 @@
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Bot, Sparkles, Calendar, BarChart3, Linkedin, LayoutDashboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 
 const dashboardPreview = "/images/dashboard-preview.webp";
 
-const Hero = () => {
+interface HeroProps {
+  isLoggedIn: boolean;
+}
+
+const Hero = ({ isLoggedIn }: HeroProps) => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
-    };
-    checkSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   return (
     <section className="relative min-h-[90vh] md:min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
       
-      {/* Floating orbs */}
-      <div className="absolute top-20 left-10 md:left-20 w-48 md:w-72 h-48 md:h-72 bg-primary/20 rounded-full blur-3xl animate-float-slow" />
-      <div className="absolute bottom-20 right-10 md:right-20 w-64 md:w-96 h-64 md:h-96 bg-secondary/20 rounded-full blur-3xl animate-float-slow-reverse" />
+      {/* Floating orbs - use will-change for GPU acceleration */}
+      <div className="absolute top-20 left-10 md:left-20 w-48 md:w-72 h-48 md:h-72 bg-primary/20 rounded-full blur-3xl animate-float-slow will-change-transform" />
+      <div className="absolute bottom-20 right-10 md:right-20 w-64 md:w-96 h-64 md:h-96 bg-secondary/20 rounded-full blur-3xl animate-float-slow-reverse will-change-transform" />
 
       {/* Grid pattern overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
@@ -112,7 +99,7 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Dashboard preview mockup */}
+        {/* Dashboard preview mockup - lazy loaded */}
         <div className="animate-fade-up [animation-delay:500ms] mt-12 md:mt-20 max-w-5xl mx-auto">
           <div className="relative">
             <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/20 rounded-3xl blur-2xl" />
@@ -125,7 +112,7 @@ const Hero = () => {
                 </div>
                 <div className="flex-1 flex justify-center">
                   <div className="px-4 py-1 bg-background rounded-md text-xs text-muted-foreground">
-                    linkedbot4.lovable.app/dashboard
+                    linkedbot.app/dashboard
                   </div>
                 </div>
               </div>
@@ -135,7 +122,7 @@ const Hero = () => {
                 className="w-full h-auto"
                 width={1280}
                 height={720}
-                fetchPriority="high"
+                loading="lazy"
                 decoding="async"
               />
             </div>
