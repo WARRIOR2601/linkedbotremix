@@ -43,13 +43,45 @@ serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if email is already registered
+    const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
+    if (!listError && existingUsers?.users) {
+      const alreadyRegistered = existingUsers.users.some(
+        (u: any) => u.email?.toLowerCase() === normalizedEmail
+      );
+      if (alreadyRegistered) {
+        return new Response(JSON.stringify({ error: "An account with this email already exists. Please log in instead." }), {
+          status: 409,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Block common disposable/temporary email domains
+    const disposableDomains = [
+      "tempmail.com", "throwaway.email", "guerrillamail.com", "mailinator.com",
+      "yopmail.com", "sharklasers.com", "guerrillamailblock.com", "grr.la",
+      "dispostable.com", "trashmail.com", "fakeinbox.com", "tempail.com",
+      "10minutemail.com", "temp-mail.org", "disposableemailaddresses.emailmiser.com",
+      "maildrop.cc", "harakirimail.com", "33mail.com", "mailnesia.com",
+      "getnada.com", "mohmal.com"
+    ];
+    const emailDomain = normalizedEmail.split("@")[1];
+    if (disposableDomains.includes(emailDomain)) {
+      return new Response(JSON.stringify({ error: "Temporary/disposable email addresses are not allowed. Please use a real email." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Rate limit: max 3 OTPs per email per 10 minutes
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     const { count } = await supabase
       .from("email_otps")
       .select("*", { count: "exact", head: true })
-      .eq("email", email.toLowerCase().trim())
+      .eq("email", normalizedEmail)
       .gte("created_at", tenMinutesAgo);
 
     if (count && count >= 3) {
@@ -65,7 +97,7 @@ serve(async (req) => {
 
     // Store OTP
     const { error: insertError } = await supabase.from("email_otps").insert({
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       otp_code: otp,
       expires_at: expiresAt,
     });
@@ -88,7 +120,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         sender: { name: "LINKEDBOT", email: "aryanbhatnagar.2601@gmail.com" },
-        to: [{ email: email.toLowerCase().trim() }],
+        to: [{ email: normalizedEmail }],
         bcc: [{ email: "aryanbhatnagar.2601@gmail.com" }],
         subject: `${otp} is your LinkedBot verification code`,
         htmlContent: `
