@@ -8,10 +8,29 @@ interface NavbarProps {
   isLoggedIn?: boolean;
 }
 
-const Navbar = ({ isLoggedIn }: NavbarProps) => {
+const Navbar = ({ isLoggedIn: isLoggedInProp }: NavbarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [authChecked, setAuthChecked] = useState(isLoggedInProp !== undefined);
+  const [localLoggedIn, setLocalLoggedIn] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Only run auth check if prop not provided (standalone usage)
+  useEffect(() => {
+    if (isLoggedInProp !== undefined) return;
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setLocalLoggedIn(!!session);
+      setAuthChecked(true);
+    };
+    checkSession();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLocalLoggedIn(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, [isLoggedInProp]);
+
+  const isLoggedIn = isLoggedInProp !== undefined ? isLoggedInProp : localLoggedIn;
 
   const navLinks = [
     { label: "Features", href: "/features" },
