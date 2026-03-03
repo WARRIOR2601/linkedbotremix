@@ -25,23 +25,28 @@ export default defineConfig(({ mode }) => ({
       compress: {
         drop_console: true,
         drop_debugger: true,
+        passes: 2,
       },
     },
     // Chunk splitting for better caching
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-router': ['react-router-dom'],
           'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-ui': ['@radix-ui/react-dropdown-menu', '@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+          'vendor-ui-core': ['@radix-ui/react-dropdown-menu', '@radix-ui/react-dialog', '@radix-ui/react-popover'],
+          'vendor-ui-extra': ['@radix-ui/react-tabs', '@radix-ui/react-tooltip', '@radix-ui/react-select'],
           'vendor-charts': ['recharts'],
           'vendor-motion': ['framer-motion'],
+          'vendor-query': ['@tanstack/react-query'],
         },
       },
     },
     // Target modern browsers
     target: 'es2020',
-    // Enable source maps for debugging but keep them small
     sourcemap: false,
+    // Warn on large chunks
+    chunkSizeWarningLimit: 250,
   },
 }));
