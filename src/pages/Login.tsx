@@ -17,7 +17,7 @@ const Login = () => {
   // Removed isSignUp toggle — signup must go through /signup with OTP
 
   // Form fields
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
