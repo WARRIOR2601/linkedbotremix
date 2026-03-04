@@ -38,6 +38,7 @@ const AdminManagement = lazy(() => import("./pages/admin/AdminManagement"));
 const AdminAPIKeys = lazy(() => import("./pages/admin/AdminAPIKeys"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const FeaturesPage = lazy(() => import("./pages/FeaturesPage"));
 const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
@@ -133,6 +134,7 @@ const AppContent = () => {
             <Route path="/community" element={<Community />} />
             {/* Product pages */}
             <Route path="/api" element={<API />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
