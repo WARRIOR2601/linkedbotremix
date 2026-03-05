@@ -26,10 +26,9 @@ serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get("GOOGLE_GEMINI_API_KEY");
-    const TAVILY_API_KEY = Deno.env.get("TAVILY_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-    if (!GOOGLE_GEMINI_API_KEY) throw new Error("GOOGLE_GEMINI_API_KEY not configured");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const today = new Date().toISOString().split("T")[0];
 
@@ -78,6 +77,7 @@ serve(async (req) => {
 
         // Research with cache
         let researchInsights = "";
+        const TAVILY_API_KEY = Deno.env.get("TAVILY_API_KEY");
         if (TAVILY_API_KEY) {
           const query = `Latest news and insights about ${campaign.topic} today ${today}`;
           const queryHash = simpleHash(query.toLowerCase().trim());
@@ -140,14 +140,14 @@ ${researchInsights ? `TODAY'S RESEARCH INSIGHTS:\n${researchInsights}` : "Use yo
 Write ONE LinkedIn post (100-250 words) based on today's fresh insights. Write as the user. No hashtags. Make it engaging and shareable.
 ${!researchInsights ? "\nNote: Based on general knowledge (research unavailable today)." : ""}`;
 
-        const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${GOOGLE_GEMINI_API_KEY}`,
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "gemini-2.0-flash",
+            model: "google/gemini-2.5-flash",
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: `Write today's LinkedIn post about "${campaign.topic}" using the latest insights.` },

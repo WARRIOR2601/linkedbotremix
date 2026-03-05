@@ -212,10 +212,10 @@ serve(async (req) => {
       ? `\nIMPORTANT: Append this exact footer at the end of every post (after a blank line):\n"${campaign.footer_text}"\nDo NOT modify or paraphrase the footer.`
       : "";
 
-    // Generate all posts with Lovable AI
-    const GOOGLE_GEMINI_API_KEY = Deno.env.get("GOOGLE_GEMINI_API_KEY");
-    if (!GOOGLE_GEMINI_API_KEY) {
-      throw new Error("GOOGLE_GEMINI_API_KEY not configured");
+    // Generate all posts with Lovable AI Gateway
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY not configured");
     }
 
     const systemPrompt = `You are a LinkedIn content expert generating a campaign of ${postDates.length} posts about "${campaign.topic}".
@@ -250,14 +250,14 @@ HUMANIZATION RULES:
 
 Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST_SEPARATOR---"`;
 
-    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GOOGLE_GEMINI_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemini-2.0-flash",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Generate ${postDates.length} LinkedIn posts about "${campaign.topic}". Each post should have a different angle. Separate posts with "---POST_SEPARATOR---"` },
@@ -315,14 +315,14 @@ Generate exactly ${postDates.length} LinkedIn posts. Separate each with "---POST
         const imagePromises = batch.map(async (content: string, batchIdx: number) => {
           try {
             const prompt = generateImagePrompt(content, profile);
-            const imgResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+            const imgResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
               method: "POST",
               headers: {
-                Authorization: `Bearer ${GOOGLE_GEMINI_API_KEY}`,
+                Authorization: `Bearer ${LOVABLE_API_KEY}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                model: "gemini-2.0-flash",
+                model: "google/gemini-2.5-flash-image",
                 messages: [{ role: "user", content: prompt }],
                 modalities: ["image", "text"],
               }),
