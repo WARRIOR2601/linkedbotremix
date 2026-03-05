@@ -83,6 +83,7 @@ export const useAgents = () => {
         free: 1,
         pro: 3,
         business: 7,
+        custom: 999,
       };
 
       const maxAgents = AGENT_LIMITS[plan] || 1;

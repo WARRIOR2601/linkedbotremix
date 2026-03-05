@@ -5,12 +5,14 @@ export const DAILY_LIMITS = {
   free: 1,
   pro: 2,
   business: 3,
+  custom: 999,
 } as const;
 
 export const MONTHLY_LIMITS = {
   free: 5,
   pro: 30,
   business: 60,
+  custom: 9999,
 } as const;
 
 export type PlanType = keyof typeof DAILY_LIMITS;
