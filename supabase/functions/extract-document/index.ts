@@ -94,16 +94,16 @@ serve(async (req) => {
       });
     }
 
-    console.log(`📄 Extracting document: ${fileName}, type: ${fileType}, size: ${fileData.length} chars`);
+    console.log(`📄 Extracting document: ${fileName}, type: ${fileType}, using: ${useGateway ? 'Lovable AI' : 'Gemini Direct'}`);
 
-    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    const aiResponse = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GOOGLE_GEMINI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemini-2.0-flash",
+        model,
         messages,
         tools: [
           {
