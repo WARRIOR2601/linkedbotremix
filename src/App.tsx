@@ -131,6 +131,7 @@ const AppContent = () => {
             <Route path="/docs" element={<Documentation />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/help" element={<HelpCenter />} />
+            <Route path="/resources/help" element={<HelpCenter />} />
             <Route path="/community" element={<Community />} />
             {/* Product pages */}
             <Route path="/api" element={<API />} />
