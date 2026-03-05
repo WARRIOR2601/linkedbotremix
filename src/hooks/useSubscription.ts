@@ -25,6 +25,13 @@ export const PLAN_LIMITS = {
     aiImageGeneration: true,
     smartScheduling: true,
   },
+  custom: { 
+    agents: 999, 
+    postsPerMonth: 9999, 
+    postsPerDay: 999,
+    aiImageGeneration: true,
+    smartScheduling: true,
+  },
 };
 
 // Active coupons
@@ -34,7 +41,7 @@ const ACTIVE_COUPONS: Record<string, { plan: string; duration: number; descripti
 };
 
 export interface SubscriptionStatus {
-  plan: "free" | "pro" | "business";
+  plan: "free" | "pro" | "business" | "custom";
   isActive: boolean;
   expiresAt: string | null;
   postsThisMonth: number;
@@ -98,10 +105,10 @@ export const useSubscription = () => {
         .eq("user_id", user.id);
 
       // Determine plan
-      let plan: "free" | "pro" | "business" = "free";
+      let plan: "free" | "pro" | "business" | "custom" = "free";
       const subscriptionPlan = profile?.subscription_plan?.toLowerCase();
       
-      if (subscriptionPlan === "pro" || subscriptionPlan === "business") {
+      if (subscriptionPlan === "pro" || subscriptionPlan === "business" || subscriptionPlan === "custom") {
         // Check if subscription is still active
         const expiresAt = profile?.subscription_expires_at;
         if (expiresAt) {
