@@ -309,12 +309,12 @@ export const OnboardingStep2Personal = ({
             value={background}
             onChange={(e) => setBackground(e.target.value)}
             placeholder="Tell us about your experience and expertise..."
-            maxLength={200}
+            maxLength={1000}
             className="mt-1.5 min-h-[100px]"
             required
           />
           <p className="text-xs text-muted-foreground mt-1">
-            {background.length}/200 characters
+            {background.length}/1000 characters
           </p>
           {!background.trim() && (
             <p className="text-xs text-destructive mt-1">Background is required</p>
