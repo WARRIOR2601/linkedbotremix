@@ -15,7 +15,11 @@ const Onboarding = () => {
   const { toast } = useToast();
   const { completeOnboarding } = useUserProfile();
 
+  const { profile, isLoading: profileLoading, completeOnboarding: completeOnboardingFn } = useUserProfile();
+
   useEffect(() => {
+    if (profileLoading) return;
+
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -27,6 +31,13 @@ const Onboarding = () => {
         navigate("/login");
         return;
       }
+
+      // If already onboarded, redirect to dashboard
+      if (profile?.onboarding_completed) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+
       setCheckingAuth(false);
     };
     
