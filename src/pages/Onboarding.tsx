@@ -48,7 +48,7 @@ const Onboarding = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast]);
+  }, [navigate, toast, profileLoading, profile]);
   
   const [step, setStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
