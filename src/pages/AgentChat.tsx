@@ -261,6 +261,30 @@ const AgentChatPage = () => {
         return;
       }
       
+      // If AI image is enabled but no image exists, generate one first
+      let finalImageUrl = postToSchedule.imageUrl;
+      if (generatePhoto && !finalImageUrl) {
+        try {
+          toast.info("🎨 Generating AI image for your post...");
+          const { data: imgData, error: imgError } = await supabase.functions.invoke("generate-post-image", {
+            body: {
+              prompt: postToSchedule.imagePrompt,
+              postContent: postToSchedule.content,
+            },
+          });
+          if (!imgError && imgData?.imageUrl) {
+            finalImageUrl = imgData.imageUrl;
+            toast.success("✅ AI image generated!");
+          } else {
+            console.warn("Image generation failed, posting without image:", imgError || imgData?.error);
+            toast.warning("Image generation failed, posting without image.");
+          }
+        } catch (imgErr) {
+          console.warn("Image generation error:", imgErr);
+          toast.warning("Image generation failed, posting without image.");
+        }
+      }
+
       // Save to database with status='pending' (CLEAN ARCHITECTURE)
       // Website ONLY inserts 'pending' - extension updates status
       const postToSave: GeneratedPost = {
@@ -269,11 +293,11 @@ const AgentChatPage = () => {
         suggestedTime: postToSchedule.suggestedTime || scheduledTime.toISOString(),
         reasoning: postToSchedule.reasoning || "Auto-scheduled after approval",
         scheduledDateTime: scheduledTime.toISOString(),
-        imageUrl: postToSchedule.imageUrl,
+        imageUrl: finalImageUrl,
         imagePrompt: postToSchedule.imagePrompt,
         status: 'pending' as PostStatus, // ✅ ALWAYS 'pending' - extension owns status
         approved: true,
-        imageSkipped: !postToSchedule.imageUrl,
+        imageSkipped: !finalImageUrl,
       };
       
       const savedPost = await savePostToDatabase(postToSave, scheduledTime);
