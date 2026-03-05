@@ -43,8 +43,17 @@ serve(async (req) => {
       });
     }
 
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const GOOGLE_GEMINI_API_KEY = Deno.env.get("GOOGLE_GEMINI_API_KEY");
-    if (!GOOGLE_GEMINI_API_KEY) throw new Error("GOOGLE_GEMINI_API_KEY not configured");
+    
+    const useGateway = !!LOVABLE_API_KEY;
+    const apiKey = useGateway ? LOVABLE_API_KEY : GOOGLE_GEMINI_API_KEY;
+    const apiUrl = useGateway 
+      ? "https://ai.gateway.lovable.dev/v1/chat/completions"
+      : "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+    const model = useGateway ? "google/gemini-2.5-flash" : "gemini-2.0-flash";
+    
+    if (!apiKey) throw new Error("No AI API key configured");
 
     const messages: any[] = [];
 
@@ -85,16 +94,16 @@ serve(async (req) => {
       });
     }
 
-    console.log(`📄 Extracting document: ${fileName}, type: ${fileType}, size: ${fileData.length} chars`);
+    console.log(`📄 Extracting document: ${fileName}, type: ${fileType}, using: ${useGateway ? 'Lovable AI' : 'Gemini Direct'}`);
 
-    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    const aiResponse = await fetch(apiUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GOOGLE_GEMINI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemini-2.0-flash",
+        model,
         messages,
         tools: [
           {
