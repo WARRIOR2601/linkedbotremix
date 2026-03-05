@@ -13,7 +13,12 @@ interface Message {
   created_at: string;
 }
 
-const LiveChatWidget = () => {
+interface LiveChatWidgetProps {
+  externalOpen?: boolean;
+  onExternalClose?: () => void;
+}
+
+const LiveChatWidget = ({ externalOpen, onExternalClose }: LiveChatWidgetProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -26,6 +31,16 @@ const LiveChatWidget = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Sync external open state
+  useEffect(() => {
+    if (externalOpen) setIsOpen(true);
+  }, [externalOpen]);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    onExternalClose?.();
+  };
 
   // Check auth & load/create conversation when opened
   useEffect(() => {
