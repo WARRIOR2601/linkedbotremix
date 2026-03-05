@@ -93,21 +93,28 @@ const AdminAnalytics = () => {
   const fetchAnalytics = async () => {
     try {
       // Fetch all data in parallel
-      const [usersRes, agentsRes, postsRes, analyticsRes] = await Promise.all([
+      const [usersRes, agentsRes, postsRes, analyticsRes, pageViewsRes] = await Promise.all([
         supabase.rpc('get_admin_users_data'),
         supabase.from('agents').select('*', { count: 'exact' }),
         supabase.from('posts').select('*'),
         supabase.from('post_analytics').select('views, likes, comments, shares'),
+        supabase.from('page_views' as any).select('*'),
       ]);
 
       const users = usersRes.data || [];
       const posts = postsRes.data || [];
       const analytics = analyticsRes.data || [];
+      const pageViews = (pageViewsRes.data || []) as any[];
 
       // Calculate stats
-      const totalViews = analytics.reduce((sum, a) => sum + (a.views || 0), 0);
-      const totalLikes = analytics.reduce((sum, a) => sum + (a.likes || 0), 0);
-      const totalComments = analytics.reduce((sum, a) => sum + (a.comments || 0), 0);
+      const totalViews = analytics.reduce((sum: number, a: any) => sum + (a.views || 0), 0);
+      const totalLikes = analytics.reduce((sum: number, a: any) => sum + (a.likes || 0), 0);
+      const totalComments = analytics.reduce((sum: number, a: any) => sum + (a.comments || 0), 0);
+
+      // Page view stats
+      const uniqueVisitorIds = new Set(pageViews.map((pv: any) => pv.visitor_id));
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const todayViews = pageViews.filter((pv: any) => pv.created_at?.startsWith(today));
 
       setStats({
         totalUsers: users.length,
@@ -117,7 +124,25 @@ const AdminAnalytics = () => {
         totalViews,
         totalLikes,
         totalComments,
+        totalPageViews: pageViews.length,
+        uniqueVisitors: uniqueVisitorIds.size,
+        todayPageViews: todayViews.length,
       });
+
+      // Daily page views (last 7 days)
+      const pvByDay: Record<string, number> = {};
+      for (let i = 6; i >= 0; i--) {
+        pvByDay[format(subDays(new Date(), i), 'MMM d')] = 0;
+      }
+      pageViews.forEach((pv: any) => {
+        if (pv.created_at) {
+          const d = format(new Date(pv.created_at), 'MMM d');
+          if (pvByDay[d] !== undefined) pvByDay[d]++;
+        }
+      });
+      setDailyPageViews(
+        Object.entries(pvByDay).map(([date, count]) => ({ date, count }))
+      );
 
       // Plan distribution
       const planCounts: Record<string, number> = {};
