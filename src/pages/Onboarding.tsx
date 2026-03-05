@@ -13,9 +13,7 @@ const Onboarding = () => {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { completeOnboarding } = useUserProfile();
-
-  const { profile, isLoading: profileLoading, completeOnboarding: completeOnboardingFn } = useUserProfile();
+  const { profile, isLoading: profileLoading, completeOnboarding } = useUserProfile();
 
   useEffect(() => {
     if (profileLoading) return;
