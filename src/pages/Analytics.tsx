@@ -92,7 +92,7 @@ const calcEngagement = (v: number, l: number, c: number, s: number): number => {
 const AnalyticsPage = () => {
   usePageTitle("Analytics");
   const { toast } = useToast();
-  const { isConnected, isInstalled } = useLinkedBotExtension();
+  const { isConnected, isInstalled, connectExtension, checkExtension } = useLinkedBotExtension();
   const { profile: userProfile, isLoading: profileLoading } = useDashboardProfile();
   const { isSyncing, syncAnalytics } = useLinkedInAnalytics();
 
@@ -398,17 +398,28 @@ const AnalyticsPage = () => {
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                     <Chrome className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">Install LinkedBot Extension</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    {isInstalled ? "Connect Your Extension" : "Install LinkedBot Extension"}
+                  </h3>
                   <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                    To view your LinkedIn analytics, install the LinkedBot Chrome Extension. It scrapes your post metrics directly from LinkedIn.
+                    {isInstalled 
+                      ? "Extension is installed but not connected. Click below to connect it."
+                      : "To view your LinkedIn analytics, install the LinkedBot Chrome Extension. It scrapes your post metrics directly from LinkedIn."}
                   </p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <Button asChild className="gap-2">
-                      <a href="https://chromewebstore.google.com/detail/linkedbot-linkedin-automa/mmdcbopjeijbhecfnnpjehledechmbbo" target="_blank" rel="noopener noreferrer">
-                        <Download className="w-4 h-4" />
-                        Install Chrome Extension
-                      </a>
-                    </Button>
+                    {isInstalled ? (
+                      <Button onClick={async () => { await connectExtension(); checkExtension(); }} className="gap-2">
+                        <RefreshCw className="w-4 h-4" />
+                        Connect Extension
+                      </Button>
+                    ) : (
+                      <Button asChild className="gap-2">
+                        <a href="https://chromewebstore.google.com/detail/linkedbot-linkedin-automa/mmdcbopjeijbhecfnnpjehledechmbbo" target="_blank" rel="noopener noreferrer">
+                          <Download className="w-4 h-4" />
+                          Install Chrome Extension
+                        </a>
+                      </Button>
+                    )}
                     <Button variant="outline" onClick={handleSyncAnalytics} disabled={!isConnected || isSyncing}>
                       {isSyncing ? "Syncing..." : "Sync Now"}
                     </Button>
