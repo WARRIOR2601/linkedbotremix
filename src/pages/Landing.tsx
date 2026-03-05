@@ -14,8 +14,8 @@ const Landing = () => {
   // Single auth check shared across Navbar + Hero
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
     };
     checkSession();
 
