@@ -17,6 +17,8 @@ import {
   Eye,
   ThumbsUp,
   MessageSquare,
+  Globe,
+  MousePointerClick,
 } from "lucide-react";
 import {
   BarChart,
