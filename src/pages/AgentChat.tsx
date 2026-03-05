@@ -341,7 +341,7 @@ const AgentChatPage = () => {
                   onClick: () => window.open(data.postUrl, '_blank'),
                 } : undefined,
               });
-              addActivityEntry("posted", `Published to LinkedIn`, savedPost.id);
+              addActivityEntry("published", `Published to LinkedIn`, savedPost.id);
               updatePost(savedPost.id, { status: 'posted' as PostStatus });
             }
           } catch (postErr) {
