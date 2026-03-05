@@ -127,11 +127,45 @@ const WritingDNAPage = () => {
     }
   };
 
+  const [isSavingPosts, setIsSavingPosts] = useState(false);
+
   const handleAnalyze = async () => {
     const validPosts = samplePosts.filter((p) => p.trim().length > 20);
     if (validPosts.length < 3) return;
     await analyzePosts(validPosts);
     setShowImport(false);
+  };
+
+  const handleSavePosts = async () => {
+    const validPosts = samplePosts.filter((p) => p.trim().length > 10);
+    if (validPosts.length === 0) {
+      toast.error("Please add at least one post with content");
+      return;
+    }
+    setIsSavingPosts(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase.from("agent_reference_materials").insert(
+        validPosts.map((post, i) => ({
+          user_id: user.id,
+          title: `LinkedIn Post ${i + 1} - ${post.substring(0, 40)}...`,
+          content: post.trim(),
+          type: "writing_sample",
+        }))
+      );
+
+      if (error) throw error;
+      toast.success(`${validPosts.length} post(s) saved as reference materials!`);
+      setSamplePosts(["", "", ""]);
+      setShowImport(false);
+      fetchMaterials();
+    } catch (err) {
+      toast.error("Failed to save posts");
+    } finally {
+      setIsSavingPosts(false);
+    }
   };
 
   const updateSample = (index: number, value: string) => {
@@ -588,7 +622,7 @@ const WritingDNAPage = () => {
                   />
                 </div>
               ))}
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 {samplePosts.length < 10 && (
                   <Button variant="outline" size="sm" onClick={addSample}>
                     <Plus className="w-4 h-4 mr-1" />
@@ -598,6 +632,19 @@ const WritingDNAPage = () => {
                 <div className="flex-1" />
                 <Button variant="ghost" onClick={() => setShowImport(false)}>
                   Cancel
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleSavePosts}
+                  disabled={isSavingPosts || samplePosts.filter((p) => p.trim().length > 10).length === 0}
+                  className="gap-2"
+                >
+                  {isSavingPosts ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Save Posts
                 </Button>
                 <Button
                   onClick={handleAnalyze}
