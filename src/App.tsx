@@ -75,16 +75,20 @@ const PageLoader = () => (
   </div>
 );
 
+// Page view tracker must be inside BrowserRouter
+const PageViewTracker = () => {
+  usePageViewTracker();
+  return null;
+};
+
 // Inner component that uses hooks
 const AppContent = () => {
-  // Track page views across all routes
-  usePageViewTracker();
-
   return (
     <>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <PageViewTracker />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Landing />} />
