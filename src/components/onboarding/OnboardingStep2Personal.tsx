@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowLeft, Linkedin, AlertCircle } from "lucide-react";
+import { ArrowRight, ArrowLeft, Linkedin, AlertCircle, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,17 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const cities = [
-  "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad",
-  "Jaipur", "Lucknow", "Surat", "Chandigarh", "Indore", "Nagpur", "Coimbatore",
-  "New York", "San Francisco", "London", "Dubai", "Singapore", "Toronto", "Sydney", "Other",
-];
-
-const countries = [
-  "India", "United States", "United Kingdom", "Canada", "Australia",
-  "UAE", "Singapore", "Germany", "France", "Netherlands", "Other",
-];
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { getAllCountries, getCitiesForCountry } from "@/data/countriesAndCities";
 
 const professions = [
   "Marketing Director", "Software Engineer", "Product Manager", "CEO / Founder",
