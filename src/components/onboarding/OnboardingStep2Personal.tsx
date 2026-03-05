@@ -71,7 +71,7 @@ export const OnboardingStep2Personal = ({
     if (!country || countryOther) return [];
     return getCitiesForCountry(country);
   }, [country, countryOther]);
-  const [professionOther, setProfessionOther] = useState(false);
+  
 
   const isValidLinkedInUrl = (url: string) => {
     if (!url) return false;
