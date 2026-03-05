@@ -1,7 +1,7 @@
 import { forwardRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, Zap, Crown, Rocket } from "lucide-react";
+import { Check, Zap, Crown, Rocket, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const plans = [
@@ -23,6 +23,7 @@ const plans = [
     ],
     cta: "Get Started Free",
     popular: false,
+    isCustom: false,
   },
   {
     name: "Pro",
@@ -44,6 +45,7 @@ const plans = [
     ],
     cta: "Start Pro Trial",
     popular: true,
+    isCustom: false,
   },
   {
     name: "Business",
@@ -55,7 +57,7 @@ const plans = [
     period: "per month",
     description: "For teams and agencies managing multiple brands",
     features: [
-      "Unlimited Agents",
+      "7 Active Agents",
       "60 posts per month",
       "Full analytics suite",
       "AI photo generation",
@@ -67,15 +69,38 @@ const plans = [
     ],
     cta: "Start Business Trial",
     popular: false,
+    isCustom: false,
+  },
+  {
+    name: "Custom",
+    icon: Mail,
+    priceMonthly: "",
+    priceMonthlyINR: "",
+    priceYearly: "",
+    priceYearlyINR: "",
+    period: "",
+    description: "Need more? Let's build a plan that fits your needs",
+    features: [
+      "Unlimited Agents",
+      "Unlimited posts",
+      "Dedicated account manager",
+      "Custom AI training",
+      "API access",
+      "White-label options",
+      "SLA & priority support",
+    ],
+    cta: "Contact Us",
+    popular: false,
+    isCustom: true,
   },
 ];
 
 export const PLAN_LIMITS = {
   free: { agents: 1, postsPerMonth: 5, postsPerDay: 1 },
   pro: { agents: 3, postsPerMonth: 30, postsPerDay: 2 },
-  business: { agents: -1, postsPerMonth: 60, postsPerDay: 3 },
+  business: { agents: 7, postsPerMonth: 60, postsPerDay: 3 },
+  custom: { agents: 999, postsPerMonth: 9999, postsPerDay: 999 },
 };
-
 const Pricing = forwardRef<HTMLElement>((_, ref) => {
   const navigate = useNavigate();
   const [isYearly, setIsYearly] = useState(false);
