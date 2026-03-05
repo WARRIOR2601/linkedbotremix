@@ -167,7 +167,7 @@ const LiveChatWidget = ({ externalOpen, onExternalClose }: LiveChatWidgetProps) 
                 <MessageCircle className="w-5 h-5" />
                 <span className="font-semibold">Live Support</span>
               </div>
-              <button onClick={() => setIsOpen(false)}>
+              <button onClick={handleClose}>
                 <X className="w-5 h-5" />
               </button>
             </div>
