@@ -330,7 +330,9 @@ const BillingPage = () => {
                       </div>
 
                       <div className="mb-4">
-                        {plan === "free" ? (
+                        {plan === "custom" ? (
+                          <div className="text-2xl font-bold">Let's Talk</div>
+                        ) : plan === "free" ? (
                           <div className="text-2xl font-bold">Free</div>
                         ) : pricing ? (
                           <div className="space-y-1">
