@@ -394,21 +394,40 @@ const AdminCouponsPage = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Applicable Plan</Label>
-                  <Select
-                    value={formData.plan}
-                    onValueChange={(val) => setFormData({ ...formData, plan: val })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="any">All Plans</SelectItem>
-                      <SelectItem value="pro">Pro Only (₹999)</SelectItem>
-                      <SelectItem value="business">Business Only (₹1999)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Applicable Plan</Label>
+                    <Select
+                      value={formData.plan}
+                      onValueChange={(val) => setFormData({ ...formData, plan: val })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">All Plans</SelectItem>
+                        <SelectItem value="pro">Pro Only</SelectItem>
+                        <SelectItem value="business">Business Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Billing Period</Label>
+                    <Select
+                      value={formData.billing_period}
+                      onValueChange={(val) => setFormData({ ...formData, billing_period: val })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">All Periods</SelectItem>
+                        <SelectItem value="monthly">Monthly Only</SelectItem>
+                        <SelectItem value="yearly">Yearly Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
