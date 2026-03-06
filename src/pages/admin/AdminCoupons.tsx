@@ -203,11 +203,24 @@ const AdminCouponsPage = () => {
 
     setIsSaving(true);
     try {
+      // Combine plan + billing_period into a single plan field for storage
+      let planValue: string | null = null;
+      if (formData.plan !== "any") {
+        if (formData.billing_period !== "any") {
+          planValue = `${formData.plan}_${formData.billing_period}`;
+        } else {
+          planValue = formData.plan;
+        }
+      } else if (formData.billing_period !== "any") {
+        // Any plan but specific billing period (e.g. "yearly" applies to all yearly plans)
+        planValue = `_${formData.billing_period}`;
+      }
+
       const couponData = {
         code: formData.code.toUpperCase(),
         type: formData.type,
         value: formData.value,
-        plan: formData.plan === "any" ? null : formData.plan,
+        plan: planValue,
         duration_days: formData.duration_days,
         max_uses: formData.max_uses ? parseInt(formData.max_uses) : null,
         valid_until: formData.valid_until || null,
