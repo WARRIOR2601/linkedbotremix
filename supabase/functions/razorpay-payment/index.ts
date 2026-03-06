@@ -7,10 +7,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Plan pricing in INR
+// Plan pricing in INR — yearly = 12x monthly (no built-in discount)
 const PLAN_PRICES = {
-  pro: { monthly: 999, yearly: 9999 },
-  business: { monthly: 1999, yearly: 19999 },
+  pro: { monthly: 999, yearly: 11988 },
+  business: { monthly: 1999, yearly: 23988 },
 };
 
 function getDurationDays(billingPeriod: string): number {
