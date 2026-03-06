@@ -139,6 +139,7 @@ const AdminCouponsPage = () => {
       type: "percentage",
       value: 0,
       plan: "any",
+      billing_period: "any",
       duration_days: 30,
       max_uses: "",
       valid_until: "",
@@ -149,11 +150,22 @@ const AdminCouponsPage = () => {
   const handleOpenDialog = (coupon?: Coupon) => {
     if (coupon) {
       setEditingCoupon(coupon);
+      // Derive billing_period from plan field (e.g. "pro_yearly" -> plan="pro", billing_period="yearly")
+      let plan = coupon.plan || "any";
+      let billing_period = "any";
+      if (plan?.endsWith("_yearly")) {
+        billing_period = "yearly";
+        plan = plan.replace("_yearly", "");
+      } else if (plan?.endsWith("_monthly")) {
+        billing_period = "monthly";
+        plan = plan.replace("_monthly", "");
+      }
       setFormData({
         code: coupon.code,
         type: coupon.type,
         value: coupon.value,
-        plan: coupon.plan || "any",
+        plan,
+        billing_period,
         duration_days: coupon.duration_days,
         max_uses: coupon.max_uses?.toString() || "",
         valid_until: coupon.valid_until ? coupon.valid_until.split("T")[0] : "",
