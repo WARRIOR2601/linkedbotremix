@@ -71,6 +71,7 @@ export function CampaignSetupForm({ onSubmit, onCancel, isGenerating }: Campaign
   const [autoBestTime, setAutoBestTime] = useState(true);
   const [autoApprove, setAutoApprove] = useState(false);
   const [postingTime, setPostingTime] = useState("09:00");
+  const [secondPostTime, setSecondPostTime] = useState("17:00");
   const [postsPerDay, setPostsPerDay] = useState(1);
 
   // Content controls
