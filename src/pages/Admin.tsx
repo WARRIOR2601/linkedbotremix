@@ -157,6 +157,13 @@ const AdminPage = () => {
     };
 
     checkAdminAccess();
+
+    // Auto-refresh every 30 seconds
+    const refreshInterval = setInterval(() => {
+      fetchAdminData();
+    }, 30000);
+
+    return () => clearInterval(refreshInterval);
   }, [navigate]);
 
   const fetchAdminData = async () => {
