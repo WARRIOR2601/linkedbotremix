@@ -1209,8 +1209,8 @@ serve(async (req) => {
       );
     }
 
-    const intent = detectIntent(message, uploadedImages);
-    console.log("🎯 Detected intent:", intent.type);
+    const intent = earlyIntent;
+    console.log("🎯 Processing intent:", intent.type);
 
     let response = "";
     let posts: any[] = [];
