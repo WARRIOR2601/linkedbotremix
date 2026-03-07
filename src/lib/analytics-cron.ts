@@ -178,6 +178,14 @@ function setupMessageListeners() {
     
     if (message.type === 'EXTENSION_CONNECTED') {
       extensionConnected = true;
+      console.log('📊 Analytics cron: Extension connected');
+    }
+    
+    if (message.type === 'EXTENSION_STATUS' && message.connected) {
+      extensionConnected = true;
+      console.log('📊 Analytics cron: Extension status confirmed connected');
+      // Trigger scrape if we just learned the extension is connected
+      setTimeout(() => { scrapeAllPostAnalytics(); }, 3000);
     }
     
     if (message.type === 'EXTENSION_DISCONNECTED') {
@@ -212,6 +220,16 @@ export function startAnalyticsCron() {
   
   // Setup message listeners
   setupMessageListeners();
+  
+  // Check if extension was already connected before we started listening
+  const wasConnected = localStorage.getItem('extension_connected') === 'true';
+  if (wasConnected) {
+    console.log('⏰ Extension was already connected, marking as connected');
+    extensionConnected = true;
+  }
+  
+  // Also send a check message to confirm current state
+  window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
   
   // Run initial scrape after delay (if extension already connected)
   setTimeout(() => {
