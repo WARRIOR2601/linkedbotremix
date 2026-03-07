@@ -532,6 +532,21 @@ const DashboardPage = () => {
                         )}
                       </td>
                       <td className="p-4">
+                        {post.photo_url ? (
+                          <img 
+                            src={post.photo_url} 
+                            alt="Post image" 
+                            className="w-12 h-12 rounded-lg object-cover border border-border"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="text-muted-foreground text-xs flex items-center gap-1">
+                            <ImageIcon className="w-4 h-4" />
+                            None
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4">
                         <div className="flex items-center justify-end gap-2">
                           {/* Retry button for failed posts */}
                           {post.status === 'failed' && (
