@@ -390,6 +390,7 @@ const DashboardPage = () => {
                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Scheduled</th>
                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Status</th>
                      <th className="text-left p-4 text-sm font-medium text-muted-foreground">Analytics</th>
+                     <th className="text-left p-4 text-sm font-medium text-muted-foreground">Image</th>
                     <th className="text-right p-4 text-sm font-medium text-muted-foreground">Actions</th>
                   </tr>
                 </thead>
