@@ -213,6 +213,16 @@ export function startAnalyticsCron() {
   // Setup message listeners
   setupMessageListeners();
   
+  // Check if extension was already connected before we started listening
+  const wasConnected = localStorage.getItem('extension_connected') === 'true';
+  if (wasConnected) {
+    console.log('⏰ Extension was already connected, marking as connected');
+    extensionConnected = true;
+  }
+  
+  // Also send a check message to confirm current state
+  window.postMessage({ type: 'CHECK_EXTENSION' }, '*');
+  
   // Run initial scrape after delay (if extension already connected)
   setTimeout(() => {
     if (extensionConnected) {
