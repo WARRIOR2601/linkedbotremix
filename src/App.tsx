@@ -40,6 +40,8 @@ const AdminAPIKeys = lazy(() => import("./pages/admin/AdminAPIKeys"));
 const AdminActivity = lazy(() => import("./pages/admin/AdminActivity"));
 const AdminSupportChat = lazy(() => import("./pages/admin/AdminSupportChat"));
 const AdminVisitors = lazy(() => import("./pages/admin/AdminVisitors"));
+const AdminAffiliates = lazy(() => import("./pages/admin/AdminAffiliates"));
+const AdminCustomRequests = lazy(() => import("./pages/admin/AdminCustomRequests"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const FeaturesPage = lazy(() => import("./pages/FeaturesPage"));
@@ -134,6 +136,8 @@ const AppContent = () => {
             <Route path="/admin/activity" element={<AdminRoute><AdminActivity /></AdminRoute>} />
             <Route path="/admin/support" element={<AdminRoute><AdminSupportChat /></AdminRoute>} />
             <Route path="/admin/visitors" element={<AdminRoute><AdminVisitors /></AdminRoute>} />
+            <Route path="/admin/affiliates" element={<AdminRoute><AdminAffiliates /></AdminRoute>} />
+            <Route path="/admin/custom-requests" element={<AdminRoute><AdminCustomRequests /></AdminRoute>} />
             {/* Public pages */}
             <Route path="/features" element={<FeaturesPage />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
