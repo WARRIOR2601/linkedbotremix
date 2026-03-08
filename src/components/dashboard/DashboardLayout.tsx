@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import SubscriptionExpiryBanner from "@/components/dashboard/SubscriptionExpiryBanner";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
