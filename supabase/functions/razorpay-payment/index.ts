@@ -201,6 +201,7 @@ serve(async (req) => {
           .update({
             subscription_plan: plan,
             subscription_expires_at: expiryDate.toISOString(),
+            billing_period: billingPeriod,
           })
           .eq("user_id", user.id);
 
@@ -215,6 +216,7 @@ serve(async (req) => {
           discount_amount: discountAmount,
           final_amount: 0,
           payment_method: "coupon",
+          billing_period: billingPeriod,
         });
 
         if (couponId) {
@@ -303,6 +305,7 @@ serve(async (req) => {
         coupon_code: couponCode,
         discount_amount: discountAmount,
         final_amount: finalAmount,
+        billing_period: billingPeriod,
       });
 
       return new Response(
@@ -392,6 +395,7 @@ serve(async (req) => {
         .update({
           subscription_plan: payment.plan,
           subscription_expires_at: expiryDate.toISOString(),
+          billing_period: period,
         })
         .eq("user_id", user.id);
 
