@@ -49,6 +49,8 @@ const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
 const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
 const GDPR = lazy(() => import("./pages/legal/GDPR"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const AffiliateProgram = lazy(() => import("./pages/AffiliateProgram"));
 const Documentation = lazy(() => import("./pages/resources/Documentation"));
 const Blog = lazy(() => import("./pages/resources/Blog"));
 const HelpCenter = lazy(() => import("./pages/resources/HelpCenter"));
