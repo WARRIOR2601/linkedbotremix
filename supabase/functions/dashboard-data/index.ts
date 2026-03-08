@@ -35,6 +35,7 @@ serve(async (req) => {
     }
 
     const userId = user.id;
+    console.log('📊 Dashboard data request for user:', userId);
 
     // Run ALL queries in parallel — this is the key optimization
     const [analyticsResult, postsResult, agentsResult, scheduledPostsResult] = await Promise.all([
