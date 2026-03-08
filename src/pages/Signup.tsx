@@ -309,10 +309,11 @@ const Signup = () => {
                         className="mt-0.5"
                       />
                       <label htmlFor="agree-terms" className="text-xs text-muted-foreground cursor-pointer leading-tight">
-                        I agree to LinkedBot's{" "}
-                        <a href="/legal/terms" target="_blank" className="text-primary hover:underline">Terms of Service</a>{" "}
+                        I agree to the{" "}
+                        <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">Terms & Conditions</a>{" "}
                         and{" "}
-                        <a href="/legal/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>
+                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">Privacy Policy</a>{" "}
+                        of Linkedbot.
                       </label>
                     </div>
 
