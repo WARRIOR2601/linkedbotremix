@@ -304,6 +304,7 @@ serve(async (req) => {
         coupon_code: couponCode,
         discount_amount: discountAmount,
         final_amount: finalAmount,
+        billing_period: billingPeriod,
       });
 
       return new Response(
