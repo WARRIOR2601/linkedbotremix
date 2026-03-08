@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Zap, Crown, Rocket, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import CustomPlanDialog from "./CustomPlanDialog";
 
 const plans = [
   {
