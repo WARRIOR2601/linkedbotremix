@@ -97,23 +97,28 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
             <h4 className="font-semibold mb-4">Legal</h4>
             <ul className="space-y-3 text-sm text-sidebar-foreground/70">
               <li>
-                <button onClick={() => handleNavClick("/privacy")} className="hover:text-sidebar-foreground transition-colors">
+                <button onClick={() => handleNavClick("/terms")} className="hover:text-sidebar-foreground transition-colors">
+                  Terms & Conditions
+                </button>
+              </li>
+              <li>
+                <button onClick={() => handleNavClick("/privacy-policy")} className="hover:text-sidebar-foreground transition-colors">
                   Privacy Policy
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavClick("/terms")} className="hover:text-sidebar-foreground transition-colors">
-                  Terms of Service
+                <button onClick={() => handleNavClick("/refund-policy")} className="hover:text-sidebar-foreground transition-colors">
+                  Refund & Cancellation Policy
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavClick("/cookies")} className="hover:text-sidebar-foreground transition-colors">
+                <button onClick={() => handleNavClick("/cookie-policy")} className="hover:text-sidebar-foreground transition-colors">
                   Cookie Policy
                 </button>
               </li>
               <li>
-                <button onClick={() => handleNavClick("/gdpr")} className="hover:text-sidebar-foreground transition-colors">
-                  GDPR
+                <button onClick={() => handleNavClick("/affiliate-program")} className="hover:text-sidebar-foreground transition-colors">
+                  Affiliate Program
                 </button>
               </li>
             </ul>
@@ -123,8 +128,15 @@ const Footer = forwardRef<HTMLElement>((_, ref) => {
         {/* Bottom bar */}
         <div className="pt-8 border-t border-sidebar-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-sidebar-foreground/60">
-            © {new Date().getFullYear()} LinkedBot. All rights reserved.
+            © {new Date().getFullYear()} Bhatnagar Digital Labs. All rights reserved.
           </p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs text-sidebar-foreground/50">
+            <button onClick={() => handleNavClick("/terms")} className="hover:text-sidebar-foreground transition-colors">Terms & Conditions</button>
+            <button onClick={() => handleNavClick("/privacy-policy")} className="hover:text-sidebar-foreground transition-colors">Privacy Policy</button>
+            <button onClick={() => handleNavClick("/refund-policy")} className="hover:text-sidebar-foreground transition-colors">Refund & Cancellation Policy</button>
+            <button onClick={() => handleNavClick("/cookie-policy")} className="hover:text-sidebar-foreground transition-colors">Cookie Policy</button>
+            <button onClick={() => handleNavClick("/affiliate-program")} className="hover:text-sidebar-foreground transition-colors">Affiliate Program</button>
+          </div>
         </div>
       </div>
     </footer>

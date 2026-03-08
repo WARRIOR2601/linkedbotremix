@@ -49,6 +49,8 @@ const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
 const CookiePolicy = lazy(() => import("./pages/legal/CookiePolicy"));
 const GDPR = lazy(() => import("./pages/legal/GDPR"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const AffiliateProgram = lazy(() => import("./pages/AffiliateProgram"));
 const Documentation = lazy(() => import("./pages/resources/Documentation"));
 const Blog = lazy(() => import("./pages/resources/Blog"));
 const HelpCenter = lazy(() => import("./pages/resources/HelpCenter"));
@@ -84,11 +86,14 @@ const PageViewTracker = () => {
 
 // Inner component that uses hooks
 const AppContent = () => {
+  const CookieConsentBanner = lazy(() => import("./components/CookieConsentBanner"));
+
   return (
     <>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <Suspense fallback={null}><CookieConsentBanner /></Suspense>
         <PageViewTracker />
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -133,11 +138,16 @@ const AppContent = () => {
             <Route path="/features" element={<FeaturesPage />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/pricing" element={<PricingPage />} />
-            {/* Legal pages */}
-            <Route path="/privacy" element={<PrivacyPolicy />} />
+            {/* Legal pages - clean URLs */}
             <Route path="/terms" element={<TermsOfService />} />
-            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/refund-policy" element={<RefundPolicy />} />
+            <Route path="/cookie-policy" element={<CookiePolicy />} />
+            <Route path="/affiliate-program" element={<AffiliateProgram />} />
             <Route path="/gdpr" element={<GDPR />} />
+            {/* Legacy legal routes */}
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
             <Route path="/legal/privacy" element={<PrivacyPolicy />} />
             <Route path="/legal/terms" element={<TermsOfService />} />
             <Route path="/legal/cookies" element={<CookiePolicy />} />
