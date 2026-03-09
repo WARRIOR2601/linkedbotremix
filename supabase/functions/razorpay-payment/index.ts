@@ -139,7 +139,7 @@ serve(async (req) => {
 
     const body = await req.json();
     const { action, plan, couponCode, paymentData, billingPeriod: rawBillingPeriod } = body;
-    const billingPeriod = rawBillingPeriod === "yearly" ? "yearly" : "monthly";
+    const billingPeriod = rawBillingPeriod === "yearly" ? "yearly" : rawBillingPeriod === "quarterly" ? "quarterly" : "monthly";
 
     // ================================
     // ACTION: CREATE ORDER
