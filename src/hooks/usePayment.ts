@@ -39,7 +39,7 @@ declare global {
   }
 }
 
-export type BillingPeriod = "monthly" | "yearly";
+export type BillingPeriod = "monthly" | "quarterly" | "yearly";
 
 export function usePayment() {
   const [isLoading, setIsLoading] = useState(false);
